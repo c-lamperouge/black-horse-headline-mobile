@@ -27,7 +27,6 @@ export default defineConfig({
     postcss: {
       plugins: [
         postcssPresetEnv({
-          stage: 1
         }) as any
       ]
     }

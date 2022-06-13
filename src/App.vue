@@ -17,7 +17,7 @@ body {
 }
 
 #app {
-  display: flex;
+  display: block flex;
   height: 100%;
   flex-flow: column nowrap;
 }

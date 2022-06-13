@@ -1,7 +1,23 @@
 <script setup lang="ts">
-// import { $ref } from 'vue/macros'
+import { useStore } from '@stores/app'
+import { useRouter } from 'vue-router'
 import IconFirstView from '~icons/custom/firstView'
 
+const appStore = useStore()
+const router = useRouter()
+
+// event handle
+const toNextPage = () => {
+  appStore.hideFirstView()
+
+  if (appStore.isLoggedIn) {
+    router.push('test')
+  } else {
+    router.push({
+      name: 'log-in'
+    })
+  }
+}
 </script>
 
 <template>
@@ -16,7 +32,9 @@ import IconFirstView from '~icons/custom/firstView'
 
       <h2>技术热点的追求者</h2>
 
-      <button>立即体验</button>
+      <button @click="toNextPage">
+        立即体验
+      </button>
     </div>
   </div>
 </template>
@@ -33,7 +51,7 @@ import IconFirstView from '~icons/custom/firstView'
 .icon-first-view {
   width: 436px;
   height: 348px;
-  margin-top: 280px;
+  margin-top: 250px;
   margin-bottom: 100px;
 }
 

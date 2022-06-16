@@ -19,7 +19,7 @@ export default defineConfig({
     }),
     Icons({
       customCollections: {
-        custom: FileSystemIconLoader('src/assets/svg')
+        custom: FileSystemIconLoader('./src/assets/svg', svg => svg.replace(/^<svg /, '<svg fill="currentColor" '))
       }
     })
   ],
@@ -28,6 +28,7 @@ export default defineConfig({
       '@': path.resolve(__dirname, 'src'),
       '@components': path.resolve(__dirname, 'src/components'),
       '@stores': path.resolve(__dirname, 'src/stores'),
+      '@network': path.resolve(__dirname, 'src/network'),
       '@views': path.resolve(__dirname, 'src/views/')
     }
   },

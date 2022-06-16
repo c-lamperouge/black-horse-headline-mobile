@@ -14,7 +14,7 @@ const toNextPage = () => {
     router.push('test')
   } else {
     router.push({
-      name: 'log-in'
+      name: 'login'
     })
   }
 }

@@ -18,7 +18,7 @@ const selectPage = () => {
       })
     } else {
       router.push({
-        name: 'log-in'
+        name: 'login'
       })
     }
   }

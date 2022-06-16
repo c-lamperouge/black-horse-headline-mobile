@@ -16,7 +16,9 @@ import IconFirstView from '~icons/custom/firstView'
 
       <h2>技术热点的追求者</h2>
 
-      <button>立即体验</button>
+      <button disabled>
+        立即体验
+      </button>
     </div>
   </div>
 </template>
@@ -71,12 +73,15 @@ import IconFirstView from '~icons/custom/firstView'
     height: 63px;
     box-sizing: border-box;
     border: 2px solid #3698fa;
-    appearance: none;
     background-color: transparent;
     border-radius: 31.5px;
     color: #3698fa;
     font-size: 35px;
     transition: color 0.25s linear 0s, background-color 0.25s linear 0s;
+
+    &:disabled {
+      background-color: #ccc;
+    }
 
     &:active {
       background-color: #3698fa;

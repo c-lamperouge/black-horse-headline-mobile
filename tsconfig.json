@@ -25,11 +25,14 @@
         "src/*.ts",
         "src/*.d.ts"
       ],
-
       "@stores/*": [
         "src/stores/*.ts",
         "src/stores/*.d.ts"
       ],
+      "@network/*": [
+        "src/network/*.ts",
+        "src/network/*.d.ts"
+      ]
     }
   },
   "include": [

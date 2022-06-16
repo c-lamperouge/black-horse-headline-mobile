@@ -3,9 +3,23 @@ import { onBeforeMount } from 'vue'
 import { useStore } from '@stores/app'
 import { useRouter } from 'vue-router'
 
-const appStore = useStore()
 const router = useRouter()
+// add transition meta data
+router.afterEach((to, from) => {
+  if (from.name === 'first-view' && to.name === 'login') {
+    to.meta.transition = 'router-slide-left'
+  } else if (from.name === 'login' && to.name === 'main') {
+    to.meta.transition = 'router-slide-left'
+  } else if (from.name === 'main' && to.name === 'login') {
+    to.meta.transition = 'router-slide-right'
+  } else if (from.name === 'login' && to.name === 'first-view') {
+    to.meta.transition = 'router-slide-right'
+  } else {
+    console.log(`router: ${from.path} >> ${to.path}`)
+  }
+})
 
+const appStore = useStore()
 const selectPage = () => {
   if (!appStore.isShowenFirstView) {
     router.push({
@@ -14,7 +28,7 @@ const selectPage = () => {
   } else {
     if (appStore.isLoggedIn) {
       router.push({
-        name: 'test'
+        name: 'main-account'
       })
     } else {
       router.push({
@@ -28,10 +42,15 @@ onBeforeMount(selectPage)
 </script>
 
 <template>
-  <RouterView v-slot="{Component}">
-    <KeepAlive>
-      <component :is="Component" />
-    </KeepAlive>
+  <RouterView v-slot="{Component, route}">
+    <Transition
+      :name="route.meta.transition"
+      mode="out-in"
+    >
+      <KeepAlive>
+        <component :is="Component" />
+      </KeepAlive>
+    </Transition>
   </RouterView>
 </template>
 
@@ -60,5 +79,41 @@ button {
   display: block flex;
   height: 100%;
   flex-flow: column nowrap;
+  overflow-x: hidden;
+}
+</style>
+
+<style scoped lang="postcss">
+/* vue transition class */
+.router-slide-left-enter-active {
+  transition: transform 0.25s ease-out 0s;
+}
+
+.router-slide-left-leave-active {
+  transition: transform 0.25s ease-in 0s;
+}
+
+.router-slide-left-enter-from {
+  transform: translateX(100%);
+}
+
+.router-slide-left-leave-to {
+  transform: translateX(-100%);
+}
+
+.router-slide-right-enter-active {
+  transition: transform 0.25s ease-out 0s;
+}
+
+.router-slide-right-leave-active {
+  transition: transform 0.25s ease-in 0s;
+}
+
+.router-slide-right-enter-from {
+  transform: translateX(-100%);
+}
+
+.router-slide-right-leave-to {
+  transform: translateX(100%);
 }
 </style>

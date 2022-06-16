@@ -10,6 +10,7 @@ import TheVerificationCodeInvalid from './TheVerificationCodeInvalidSlot.vue'
 import TheSendVerificationSuccessfullySlot from './TheSendVerificationSuccessfullySlot.vue'
 import { sendVerificationCode, SendVerificationCodeError, SendVerificationCodeErrorType } from '@network/requests/sendVerificationCode'
 import { login, LoginRequestError, LoginRequestErrorType } from '@network/requests/login'
+import router from '@/router/routerIndex'
 
 // eslint-disable-next-line prefer-const
 let phoneNumber = $ref('')
@@ -144,6 +145,9 @@ const handleLoginClick = async () => {
     const data = await login(phoneNumber, verificationCode)
     console.log(data)
     isShowOverlay = false
+    router.push({
+      name: 'main'
+    })
   } catch (e) {
     if (e instanceof LoginRequestError) {
       switch (e.type) {

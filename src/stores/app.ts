@@ -13,8 +13,8 @@ interface Acttions {
 
 const useStore = defineStore<Id, State, {}, Acttions>('app', {
   state: () => ({
-    isShowenFirstView: false,
-    isLoggedIn: false
+    isShowenFirstView: true,
+    isLoggedIn: true
   }),
 
   actions: {

@@ -8,7 +8,11 @@ import IconAccount from '~icons/custom/account'
 
 <template>
   <div class="block-container">
-    <main />
+    <RouterView v-slot="{Component}">
+      <KeepAlive>
+        <component :is="Component" />
+      </KeepAlive>
+    </RouterView>
 
     <footer>
       <div class="tab-cell">
@@ -43,13 +47,7 @@ import IconAccount from '~icons/custom/account'
   display: block flex;
   flex: 1;
   flex-direction: column;
-  align-items: center;
-  justify-content: space-around;
   background-color: #edeff3;
-
-  & > main {
-    flex: 1;
-  }
 
   & > footer {
     display: flex;

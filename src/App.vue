@@ -2,6 +2,47 @@
 import { onBeforeMount } from 'vue'
 import { useStore } from '@stores/app'
 import { useRouter } from 'vue-router'
+import { openDBApp } from '@stores/openDB'
+
+const appStore = useStore()
+// according indexedDB to update appStore
+const updateAppStore = async () => {
+  const db = await openDBApp()
+  const transaction = db.transaction('selectPage', 'readwrite')
+
+  const isShowenFirstView = await transaction.store.get('isShowenFirstView')
+  const isLoggedIn = await transaction.store.get('isLoggedIn')
+  appStore.isShowenFirstView = isShowenFirstView ?? false
+  appStore.isLoggedIn = isLoggedIn ?? false
+
+  transaction.done.catch(e => {
+    console.error(e)
+  })
+  db.close()
+}
+
+// according appStore to select page
+const selectPage = async () => {
+  await updateAppStore()
+
+  if (!appStore.isShowenFirstView) {
+    router.push({
+      name: 'first-view'
+    })
+  } else {
+    if (appStore.isLoggedIn) {
+      router.push({
+        name: 'main'
+      })
+    } else {
+      router.push({
+        name: 'login'
+      })
+    }
+  }
+}
+
+onBeforeMount(selectPage)
 
 const router = useRouter()
 // add transition meta data
@@ -18,27 +59,6 @@ router.afterEach((to, from) => {
     console.log(`router: ${from.path} >> ${to.path}`)
   }
 })
-
-const appStore = useStore()
-const selectPage = () => {
-  if (!appStore.isShowenFirstView) {
-    router.push({
-      name: 'first-view'
-    })
-  } else {
-    if (appStore.isLoggedIn) {
-      router.push({
-        name: 'main-account'
-      })
-    } else {
-      router.push({
-        name: 'login'
-      })
-    }
-  }
-}
-
-onBeforeMount(selectPage)
 </script>
 
 <template>

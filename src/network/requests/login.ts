@@ -2,7 +2,7 @@ import { baseURL } from '@network/URL'
 
 interface ResponseData {
   message: string
-  data?: {
+  data: {
     token: string
     refresh_token: string
   }

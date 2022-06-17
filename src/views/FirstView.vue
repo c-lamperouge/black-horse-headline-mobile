@@ -1,10 +1,24 @@
 <script setup lang="ts">
 import { useStore } from '@stores/app'
+import { openDBApp } from '@stores/openDB'
 import { useRouter } from 'vue-router'
 import IconFirstView from '~icons/custom/firstView'
 
 const appStore = useStore()
 const router = useRouter()
+
+// update indexedDB
+const updateDB = async () => {
+  const db = await openDBApp()
+  const transaction = db.transaction('selectPage', 'readwrite')
+
+  transaction.store.put(true, 'isShowenFirstView')
+
+  transaction.done.catch(e => {
+    console.error(e)
+  })
+  db.close()
+}
 
 // event handle
 const toNextPage = () => {
@@ -17,6 +31,8 @@ const toNextPage = () => {
       name: 'login'
     })
   }
+
+  updateDB()
 }
 </script>
 

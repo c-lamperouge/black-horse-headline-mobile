@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { $ref } from 'vue/macros'
 import { computed } from 'vue'
+import { openDBNetwork } from '@stores/openDB'
+import { useRouter } from 'vue-router'
 import IconVerificationCode from '~icons/custom/verificationCode'
 import IconPhone from '~icons/custom/phone'
 import BodyOverlay from '@components/BodyOverlay.vue'
@@ -10,7 +12,6 @@ import TheVerificationCodeInvalid from './TheVerificationCodeInvalidSlot.vue'
 import TheSendVerificationSuccessfullySlot from './TheSendVerificationSuccessfullySlot.vue'
 import { sendVerificationCode, SendVerificationCodeError, SendVerificationCodeErrorType } from '@network/requests/sendVerificationCode'
 import { login, LoginRequestError, LoginRequestErrorType } from '@network/requests/login'
-import router from '@/router/routerIndex'
 
 // eslint-disable-next-line prefer-const
 let phoneNumber = $ref('')
@@ -124,6 +125,22 @@ const disableSendVerificationButtion = () => {
   }, 1000)
 }
 
+// update indexedDB
+const updateDB = async (token: string, refreshToken: string) => {
+  const db = await openDBNetwork()
+  const transaction = db.transaction('authorization', 'readwrite')
+
+  transaction.store.put(token, 'token')
+  transaction.store.put(refreshToken, 'refreshToken')
+
+  transaction.done.catch(e => {
+    console.error(e)
+  })
+  db.close()
+}
+
+const router = useRouter()
+
 const handleLoginClick = async () => {
   validatePhoneNumber()
   if (!isPhoneNumberValid) {
@@ -143,7 +160,8 @@ const handleLoginClick = async () => {
   currentOverlaySlot = OverlaySlotComponent.Loading
   try {
     const data = await login(phoneNumber, verificationCode)
-    console.log(data)
+    updateDB(data.data.token, data.data.refresh_token)
+
     isShowOverlay = false
     router.push({
       name: 'main'

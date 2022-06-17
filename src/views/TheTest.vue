@@ -1,40 +1,104 @@
 <script setup lang="ts">
-import IconHome from '~icons/custom/home'
-import IconQuestion from '~icons/custom/question'
-import IconVideo from '~icons/custom/video'
-import IconAccount from '~icons/custom/account'
+import { openDB } from 'idb'
 
+const createDB = () => {
+  openDB('db1', 1, {
+    upgrade (db) {
+      db.createObjectStore('store1')
+      db.createObjectStore('store2')
+    }
+  })
+  openDB('db2', 1, {
+    upgrade (db) {
+      db.createObjectStore('store3', { keyPath: 'id' })
+      db.createObjectStore('store4', { autoIncrement: true })
+    }
+  })
+}
+
+const addData = async () => {
+  const db1 = await openDB('db1', 1)
+  db1
+    .add('store1', 'hello again!!', 'new message')
+    .then(result => {
+      console.log('success!', result)
+    })
+    .catch(err => {
+      console.error('error: ', err)
+    })
+  db1.close()
+}
+
+const addData2 = async () => {
+  const db2 = await openDB('db2', 1)
+  db2.add('store3', { id: 'cat001', strength: 10, speed: 10 })
+  db2.add('store3', { id: 'cat002', strength: 11, speed: 9 })
+  db2.add('store4', { id: 'cat003', strength: 8, speed: 12 })
+  db2.add('store4', { id: 'cat004', strength: 12, speed: 13 })
+  db2.close()
+}
+
+const retrieveData = async () => {
+  const db2 = await openDB('db2', 1)
+  // retrieve by key:
+  db2.get('store3', 'cat001').then(console.log)
+  // retrieve all:
+  db2.getAll('store3').then(console.log)
+  // count the total number of items in a store:
+  db2.count('store3').then(console.log)
+  // get all keys:
+  db2.getAllKeys('store3').then(console.log)
+  db2.close()
+}
+
+const updateData = async () => {
+  // set db1/store1/delivered to be false:
+  const db1 = await openDB('db1', 1)
+  db1.put('store1', false, 'delivered')
+  db1.close()
+  // replace cat001 with a supercat:
+  const db2 = await openDB('db2', 1)
+  db2.put('store3', { id: 'cat001', strength: 99, speed: 99 })
+  db2.close()
+}
+
+const transaction = async () => {
+  const db2 = await openDB('db2', 1)
+  // open a new transaction, declare which stores are involved:
+  const transaction = db2.transaction(['store3', 'store4'], 'readwrite')
+  // do multiple things inside the transaction, if one fails all fail:
+  const superCat = await transaction.objectStore('store3').get('cat001')
+  transaction.objectStore('store3').delete('cat001')
+  transaction.objectStore('store4').add(superCat)
+  db2.close()
+}
 </script>
 
 <template>
   <div class="block-container">
-    <main />
+    <button @click="createDB">
+      create db
+    </button>
 
-    <footer>
-      <div class="tab-cell">
-        <IconHome class="icon" />
+    <button @click="addData">
+      add data
+    </button>
 
-        <span>首页</span>
-      </div>
+    <button @click="addData2">
+      add data 2
+    </button>
 
-      <div class="tab-cell">
-        <IconQuestion class="icon" />
+    <button @click="retrieveData">
+      retrieve data
+    </button>
 
-        <span>问答</span>
-      </div>
+    <button @click="updateData">
+      update data
+    </button>
 
-      <div class="tab-cell">
-        <IconVideo class="icon" />
-
-        <span>视频</span>
-      </div>
-
-      <div class="tab-cell -active">
-        <IconAccount class="icon" />
-
-        <span>我的</span>
-      </div>
-    </footer>
+    <button @click="transaction">
+      transaction
+    </button>
   </div>
 </template>
 
@@ -46,39 +110,5 @@ import IconAccount from '~icons/custom/account'
   align-items: center;
   justify-content: space-around;
   background-color: #edeff3;
-
-  & > main {
-    flex: 1;
-  }
-
-  & > footer {
-    display: flex;
-    width: 100%;
-    height: 102px;
-    align-items: center;
-    justify-content: space-around;
-    background-color: white;
-  }
-}
-
-.tab-cell {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  align-self: stretch;
-  justify-content: space-evenly;
-  color: #707070;
-
-  &.-active {
-    color: #3698fa;
-  }
-
-  & > .icon {
-    font-size: 40px;
-  }
-
-  & > span {
-    font-size: 20px;
-  }
 }
 </style>

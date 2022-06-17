@@ -9,17 +9,21 @@ interface State {
 
 interface Acttions {
   hideFirstView(): void
+  login(): void
 }
 
 const useStore = defineStore<Id, State, {}, Acttions>('app', {
   state: () => ({
-    isShowenFirstView: true,
-    isLoggedIn: true
+    isShowenFirstView: false,
+    isLoggedIn: false
   }),
 
   actions: {
     hideFirstView () {
       this.isShowenFirstView = true
+    },
+    login () {
+      this.isLoggedIn = true
     }
   }
 })

@@ -8,12 +8,16 @@ const appStore = useStore()
 // according indexedDB to update appStore
 const updateAppStore = async () => {
   const db = await openDBApp()
-  const transaction = db.transaction('selectPage', 'readwrite')
+  const transaction = db.transaction('selectPage', 'readonly')
 
   const isShowenFirstView = await transaction.store.get('isShowenFirstView')
   const isLoggedIn = await transaction.store.get('isLoggedIn')
-  appStore.isShowenFirstView = isShowenFirstView ?? false
-  appStore.isLoggedIn = isLoggedIn ?? false
+  if (isShowenFirstView !== undefined) {
+    appStore.isShowenFirstView = isShowenFirstView
+  }
+  if (isLoggedIn !== undefined) {
+    appStore.isLoggedIn = isLoggedIn
+  }
 
   transaction.done.catch(e => {
     console.error(e)
@@ -32,7 +36,8 @@ const selectPage = async () => {
   } else {
     if (appStore.isLoggedIn) {
       router.push({
-        name: 'main'
+        // name: 'main-account'
+        name: 'test'
       })
     } else {
       router.push({

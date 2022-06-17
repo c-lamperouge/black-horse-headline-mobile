@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { $ref } from 'vue/macros'
 import { computed } from 'vue'
-import { openDBNetwork } from '@stores/openDB'
+import { useStore } from '@stores/app'
+import { openDBApp } from '@stores/openDB'
 import { useRouter } from 'vue-router'
 import IconVerificationCode from '~icons/custom/verificationCode'
 import IconPhone from '~icons/custom/phone'
@@ -127,11 +128,12 @@ const disableSendVerificationButtion = () => {
 
 // update indexedDB
 const updateDB = async (token: string, refreshToken: string) => {
-  const db = await openDBNetwork()
-  const transaction = db.transaction('authorization', 'readwrite')
+  const db = await openDBApp()
+  const transaction = db.transaction(['authorization', 'selectPage'], 'readwrite')
 
-  transaction.store.put(token, 'token')
-  transaction.store.put(refreshToken, 'refreshToken')
+  transaction.objectStore('authorization').put(token, 'token')
+  transaction.objectStore('authorization').put(refreshToken, 'refreshToken')
+  transaction.objectStore('selectPage').put(true, 'isLoggedIn')
 
   transaction.done.catch(e => {
     console.error(e)
@@ -139,8 +141,8 @@ const updateDB = async (token: string, refreshToken: string) => {
   db.close()
 }
 
+const appStore = useStore()
 const router = useRouter()
-
 const handleLoginClick = async () => {
   validatePhoneNumber()
   if (!isPhoneNumberValid) {
@@ -160,16 +162,17 @@ const handleLoginClick = async () => {
   currentOverlaySlot = OverlaySlotComponent.Loading
   try {
     const data = await login(phoneNumber, verificationCode)
-    updateDB(data.data.token, data.data.refresh_token)
+    // updateDB(data.data.token, data.data.refresh_token)
+    appStore.login()
 
     isShowOverlay = false
     router.push({
-      name: 'main'
+      name: 'main-account'
     })
   } catch (e) {
     if (e instanceof LoginRequestError) {
       switch (e.type) {
-        case LoginRequestErrorType.RequestDataFormatError:
+        case LoginRequestErrorType.RequestMessageDataError:
           console.log(e.message)
           isShowOverlay = false
           break

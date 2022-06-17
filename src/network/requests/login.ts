@@ -1,15 +1,8 @@
-import { baseURL } from '@network/URL'
-
-interface ResponseData {
-  message: string
-  data: {
-    token: string
-    refresh_token: string
-  }
-}
+import { authorization, AuthorizationRequestError, AuthorizationRequestErrorType } from './authorization'
+import { getUserInformation, UserInformationRequestError, UserInformationRequestErrorType } from './userInformations'
 
 enum LoginRequestErrorType {
-  RequestDataFormatError,
+  RequestMessageDataError,
   ServerDatabaseError,
   InvalidResponseStatus,
 }
@@ -25,27 +18,29 @@ class LoginRequestError extends Error {
 }
 
 const login = async (phoneNumber: string, verificationCode: string) => {
-  const response = await fetch(`${baseURL}/v1_0/authorizations`, {
-    method: 'POST',
-    mode: 'cors',
-    headers: {
-      'Content-Type': 'application/json;charset=utf-8'
-    },
-    body: JSON.stringify({
-      mobile: phoneNumber,
-      code: verificationCode
-    })
-  })
+  try {
+    const authorizationData = await authorization(phoneNumber, verificationCode)
+    const userInformationData = await getUserInformation(authorizationData.data.token)
 
-  if (response.status === 201) {
-    const data: ResponseData = await response.json()
-    return data
-  } else if (response.status === 400) {
-    throw new LoginRequestError('request data error', LoginRequestErrorType.RequestDataFormatError)
-  } else if (response.status === 507) {
-    throw new LoginRequestError('server database error', LoginRequestErrorType.ServerDatabaseError)
-  } else {
-    throw new LoginRequestError(`invalid response status: ${response.status}`, LoginRequestErrorType.InvalidResponseStatus)
+    return userInformationData
+  } catch (e) {
+    if (e instanceof AuthorizationRequestError) {
+      switch (e.type) {
+        case AuthorizationRequestErrorType.RequestMessageDataError:
+          return new LoginRequestError('request message data error', LoginRequestErrorType.RequestMessageDataError)
+        case AuthorizationRequestErrorType.ServerDatabaseError:
+          return new LoginRequestError('server database error', LoginRequestErrorType.ServerDatabaseError)
+        case AuthorizationRequestErrorType.InvalidResponseStatus:
+          return new LoginRequestError('invalid response status', LoginRequestErrorType.InvalidResponseStatus)
+      }
+    } else if (e instanceof UserInformationRequestError) {
+      switch (e.type) {
+        case UserInformationRequestErrorType.RequestMessageDataError:
+          return new LoginRequestError('request message data error', LoginRequestErrorType.RequestMessageDataError)
+      }
+    } else {
+      throw e
+    }
   }
 }
 

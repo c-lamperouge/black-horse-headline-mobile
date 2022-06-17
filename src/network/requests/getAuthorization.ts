@@ -3,14 +3,14 @@ import { match } from 'ts-pattern'
 
 interface Data {
   message: string
-  data?: {
-    number: string
+  data: {
+    token: string
+    refresh_token: string
   }
 }
 
 const enum Error {
-  PhoneNumberInvalid,
-  RequestTooFrequent,
+  RequestMessageDataError,
   ServerDatabaseError,
   InvalidResponseStatus,
 }
@@ -23,28 +23,31 @@ type Result = {
   error: Error
 }
 
-type SendVerificationCode = (phoneNumber: string) => Promise<Result>
+type GetAuthorization = (phoneNumber: string, verificationCode: string) => Promise<Result>
 
-const sendVerificationCode: SendVerificationCode = async (phoneNumber) => {
-  const response = await fetch(`${baseURL}/v1_0/sms/codes/${phoneNumber}`, {
-    method: 'GET',
+const getAuthorization: GetAuthorization = async (phoneNumber, verificationCode) => {
+  const response = await fetch(`${baseURL}/v1_0/authorizations`, {
+    method: 'POST',
     mode: 'cors',
     headers: {
       'Content-Type': 'application/json;charset=utf-8'
-    }
+    },
+    body: JSON.stringify({
+      mobile: phoneNumber,
+      code: verificationCode
+    })
   })
   const data: Data = await response.json()
 
   return match<number, Result>(response.status)
-    .with(200, () => ({ success: true, data }))
-    .with(404, () => ({ success: false, error: Error.PhoneNumberInvalid }))
-    .with(429, () => ({ success: false, error: Error.RequestTooFrequent }))
+    .with(201, () => ({ success: true, data }))
+    .with(400, () => ({ success: false, error: Error.RequestMessageDataError }))
     .with(507, () => ({ success: false, error: Error.ServerDatabaseError }))
     .otherwise(() => ({ success: false, error: Error.InvalidResponseStatus }))
 }
 
 export {
-  sendVerificationCode,
+  getAuthorization,
   Error
 }
 

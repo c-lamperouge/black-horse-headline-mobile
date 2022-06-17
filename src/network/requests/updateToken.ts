@@ -1,55 +1,54 @@
 import { baseURL } from '@network/URL'
+import { match } from 'ts-pattern'
 
-interface ResponseData {
+interface Data {
   message: string
   data: {
     token: string
   }
 }
 
-enum UpdateTokenRequestErrorType {
-  RequestDataMessageError,
+const enum Error {
+  RequestMessageDataError,
   RefreshTokenExpire,
   ServerDatabaseError,
   InvalidResponseStatus,
 }
 
-class UpdateTokenRequestError extends Error {
-  type: UpdateTokenRequestErrorType
-
-  constructor (message: string, type: UpdateTokenRequestErrorType) {
-    super(message)
-    this.name = 'UpdateTokenRequestError'
-    this.type = type
-  }
+type Result = {
+  success: true
+  data: Data
+} | {
+  success: false,
+  error: Error
 }
 
-const updateToken = async (refreshToken: string) => {
+type UpdateToken = (refreshToken: string) => Promise<Result>
+
+const updateToken: UpdateToken = async (refreshToken) => {
   const response = await fetch(`${baseURL}/v1_0/authorizations`, {
     method: 'PUT',
     mode: 'cors',
     headers: {
-      'Content-Type': 'application/json;charset=utf-8',
+      'Content-Type': 'application/x-www-form-urlencoded',
       Authorization: `Bearer ${refreshToken}`
     }
   })
+  const data: Data = await response.json()
 
-  if (response.status === 201) {
-    const data: ResponseData = await response.json()
-    return data
-  } else if (response.status === 400) {
-    throw new UpdateTokenRequestError('request message data error', UpdateTokenRequestErrorType.RequestDataMessageError)
-  } else if (response.status === 403) {
-    throw new UpdateTokenRequestError('refresh token expire', UpdateTokenRequestErrorType.RefreshTokenExpire)
-  } else if (response.status === 507) {
-    throw new UpdateTokenRequestError('server database error', UpdateTokenRequestErrorType.ServerDatabaseError)
-  } else {
-    throw new UpdateTokenRequestError(`invalid response status: ${response.status}`, UpdateTokenRequestErrorType.InvalidResponseStatus)
-  }
+  return match<number, Result>(response.status)
+    .with(201, () => ({ success: true, data }))
+    .with(400, () => ({ success: false, error: Error.RequestMessageDataError }))
+    .with(403, () => ({ success: false, error: Error.RefreshTokenExpire }))
+    .with(507, () => ({ success: false, error: Error.ServerDatabaseError }))
+    .otherwise(() => ({ success: false, error: Error.InvalidResponseStatus }))
 }
 
 export {
   updateToken,
-  UpdateTokenRequestError,
-  UpdateTokenRequestErrorType
+  Error
+}
+
+export type {
+  Data
 }

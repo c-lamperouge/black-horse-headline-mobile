@@ -23,9 +23,9 @@ type Result = {
   error: Error
 }
 
-type SendVerificationCode = (phoneNumber: string) => Promise<Result>
+type GetVerificationCode = (phoneNumber: string) => Promise<Result>
 
-const sendVerificationCode: SendVerificationCode = async (phoneNumber) => {
+const getVerificationCode: GetVerificationCode = async (phoneNumber) => {
   const response = await fetch(`${baseURL}/v1_0/sms/codes/${phoneNumber}`, {
     method: 'GET',
     mode: 'cors',
@@ -44,7 +44,7 @@ const sendVerificationCode: SendVerificationCode = async (phoneNumber) => {
 }
 
 export {
-  sendVerificationCode,
+  getVerificationCode,
   Error
 }
 

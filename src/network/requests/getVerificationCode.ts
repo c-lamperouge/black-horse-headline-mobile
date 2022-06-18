@@ -1,5 +1,5 @@
 import { baseURL } from '@network/URL'
-import { match } from 'ts-pattern'
+import { ResponseResult } from '@network/ResponseResult'
 
 interface Data {
   message: string
@@ -8,22 +8,7 @@ interface Data {
   }
 }
 
-const enum Error {
-  PhoneNumberInvalid,
-  RequestTooFrequent,
-  ServerDatabaseError,
-  InvalidResponseStatus,
-}
-
-type Result = {
-  success: true
-  data: Data
-} | {
-  success: false,
-  error: Error
-}
-
-type GetVerificationCode = (phoneNumber: string) => Promise<Result>
+type GetVerificationCode = (phoneNumber: string) => Promise<ResponseResult>
 
 const getVerificationCode: GetVerificationCode = async (phoneNumber) => {
   const response = await fetch(`${baseURL}/v1_0/sms/codes/${phoneNumber}`, {
@@ -33,19 +18,16 @@ const getVerificationCode: GetVerificationCode = async (phoneNumber) => {
       'Content-Type': 'application/json;charset=utf-8'
     }
   })
-  const data: Data = await response.json()
 
-  return match<number, Result>(response.status)
-    .with(200, () => ({ success: true, data }))
-    .with(404, () => ({ success: false, error: Error.PhoneNumberInvalid }))
-    .with(429, () => ({ success: false, error: Error.RequestTooFrequent }))
-    .with(507, () => ({ success: false, error: Error.ServerDatabaseError }))
-    .otherwise(() => ({ success: false, error: Error.InvalidResponseStatus }))
+  if (response.ok) {
+    return new ResponseResult('getVerificationCode', 'success', response)
+  } else {
+    return new ResponseResult('getVerificationCode', 'failure', response)
+  }
 }
 
 export {
-  getVerificationCode,
-  Error
+  getVerificationCode
 }
 
 export type {

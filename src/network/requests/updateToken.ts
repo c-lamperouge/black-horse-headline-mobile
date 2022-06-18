@@ -1,5 +1,5 @@
 import { baseURL } from '@network/URL'
-import { match } from 'ts-pattern'
+import { ResponseResult } from '@network/ResponseResult'
 
 interface Data {
   message: string
@@ -8,22 +8,7 @@ interface Data {
   }
 }
 
-const enum Error {
-  RequestMessageDataError,
-  RefreshTokenExpire,
-  ServerDatabaseError,
-  InvalidResponseStatus,
-}
-
-type Result = {
-  success: true
-  data: Data
-} | {
-  success: false,
-  error: Error
-}
-
-type UpdateToken = (refreshToken: string) => Promise<Result>
+type UpdateToken = (refreshToken: string) => Promise<ResponseResult>
 
 const updateToken: UpdateToken = async (refreshToken) => {
   const response = await fetch(`${baseURL}/v1_0/authorizations`, {
@@ -34,19 +19,16 @@ const updateToken: UpdateToken = async (refreshToken) => {
       Authorization: `Bearer ${refreshToken}`
     }
   })
-  const data: Data = await response.json()
 
-  return match<number, Result>(response.status)
-    .with(201, () => ({ success: true, data }))
-    .with(400, () => ({ success: false, error: Error.RequestMessageDataError }))
-    .with(403, () => ({ success: false, error: Error.RefreshTokenExpire }))
-    .with(507, () => ({ success: false, error: Error.ServerDatabaseError }))
-    .otherwise(() => ({ success: false, error: Error.InvalidResponseStatus }))
+  if (response.ok) {
+    return new ResponseResult('updateToken', 'success', response)
+  } else {
+    return new ResponseResult('updateToken', 'failure', response)
+  }
 }
 
 export {
-  updateToken,
-  Error
+  updateToken
 }
 
 export type {

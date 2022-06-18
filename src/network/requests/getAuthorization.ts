@@ -1,5 +1,5 @@
 import { baseURL } from '@network/URL'
-import { match } from 'ts-pattern'
+import { ResponseResult } from '@network/ResponseResult'
 
 interface Data {
   message: string
@@ -9,21 +9,7 @@ interface Data {
   }
 }
 
-const enum Error {
-  RequestMessageDataError,
-  ServerDatabaseError,
-  InvalidResponseStatus,
-}
-
-type Result = {
-  success: true
-  data: Data
-} | {
-  success: false,
-  error: Error
-}
-
-type GetAuthorization = (phoneNumber: string, verificationCode: string) => Promise<Result>
+type GetAuthorization = (phoneNumber: string, verificationCode: string) => Promise<ResponseResult>
 
 const getAuthorization: GetAuthorization = async (phoneNumber, verificationCode) => {
   const response = await fetch(`${baseURL}/v1_0/authorizations`, {
@@ -37,18 +23,16 @@ const getAuthorization: GetAuthorization = async (phoneNumber, verificationCode)
       code: verificationCode
     })
   })
-  const data: Data = await response.json()
 
-  return match<number, Result>(response.status)
-    .with(201, () => ({ success: true, data }))
-    .with(400, () => ({ success: false, error: Error.RequestMessageDataError }))
-    .with(507, () => ({ success: false, error: Error.ServerDatabaseError }))
-    .otherwise(() => ({ success: false, error: Error.InvalidResponseStatus }))
+  if (response.ok) {
+    return new ResponseResult('getAuthorization', 'success', response)
+  } else {
+    return new ResponseResult('getAuthorization', 'failure', response)
+  }
 }
 
 export {
-  getAuthorization,
-  Error
+  getAuthorization
 }
 
 export type {

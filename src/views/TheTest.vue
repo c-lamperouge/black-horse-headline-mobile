@@ -1,71 +1,69 @@
 <script setup lang="ts">
-import { match, P } from 'ts-pattern'
+import { match } from 'ts-pattern'
 import { openDBApp } from '@stores/openDB'
-import { updateToken, Error } from '@network/requests/updateToken'
 import { getAuthorization } from '@network/requests/getAuthorization'
+import type { Data as AuthorizationData } from '@network/requests/getAuthorization'
+import { autogetUserInformation } from '@network/logic/autoGetUserInformation'
+import type { Data } from '@network/logic/autoGetUserInformation'
 
-const getRefreshToken = async () => {
+const getAuthorizationTest = async () => {
+  match(await getAuthorization('17085420503', '246810'))
+    .when(response => response.ok, async response => {
+      const data: AuthorizationData = await response.json()
+      const db = await openDBApp()
+      const transaction = db.transaction('authorization', 'readwrite')
+      transaction.store.put(data.data.token, 'token')
+      transaction.store.put(data.data.refresh_token, 'refreshToken')
+      transaction.done.catch(e => {
+        console.error(e)
+      })
+      db.close()
+    })
+    .otherwise(async response => {
+      console.log('otherwise')
+      const data = await response.json()
+      console.log(data)
+    })
+}
+
+const getToken = async () => {
   const db = await openDBApp()
-  const transaction = db.transaction('authorization', 'readonly')
-  const refreshToken = await transaction.store.get('refreshToken')
+  const transaction = db.transaction('authorization')
+  const token = await transaction.store.get('token')
   transaction.done.catch(e => {
     console.error(e)
   })
   db.close()
 
-  return refreshToken as string
+  return token
 }
 
-const test = async () => {
-  const refreshToken = await getRefreshToken()
-  console.log(refreshToken)
+const info = async () => {
+  const token = await getToken()
+  if (token === undefined) {
+    throw new Error('token not found')
+  }
 
-  match(await updateToken(refreshToken))
-    .with({ success: false, error: Error.RefreshTokenExpire }, () => {
-      console.log('refresh token expire')
-    })
-    .with({ success: false, error: Error.InvalidResponseStatus }, () => {
-      console.log('other response status')
-    })
-    .with({ success: false }, () => {})
-    .with({ success: true, data: P.select() }, (data) => {
+  match(await autogetUserInformation(token))
+    .when(response => response.ok, async response => {
+      const data: Data = await response.json()
       console.log(data)
     })
-    .exhaustive()
-}
-
-const updateAuthorization = async (token: string, refreshToken: string) => {
-  const db = await openDBApp()
-  const transaction = db.transaction('authorization', 'readwrite')
-  transaction.store.put(token, 'token')
-  transaction.store.put(refreshToken, 'refreshToken')
-  transaction.done.catch(e => {
-    console.error(e)
-  })
-  db.close()
-
-  return refreshToken as string
-}
-
-const getAndUpdateAuthorization = async () => {
-  match(await getAuthorization('13911111111', '246810'))
-    .with({ success: false }, () => {})
-    .with({ success: true, data: P.select() }, async (data) => {
-      console.log(data)
-      await updateAuthorization(data.data.token, data.data.refresh_token)
+    .otherwise(() => {
+      console.log('info failed')
     })
-    .exhaustive()
 }
+
 </script>
 
 <template>
   <div class="block-container">
-    <button @click="test">
-      test
+    <button @click="getAuthorizationTest">
+      getAuthorization
     </button>
 
-    <button @click="getAndUpdateAuthorization">
-      getAndUpdateAuthorization
+    <button @click="info">
+      test
     </button>
   </div>
 </template>

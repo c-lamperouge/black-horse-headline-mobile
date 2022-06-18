@@ -2,8 +2,8 @@
 import { $ref } from 'vue/macros'
 import { computed } from 'vue'
 import { useStore } from '@stores/app'
-import { openDBApp } from '@stores/openDB'
 import { useRouter } from 'vue-router'
+import { match } from 'ts-pattern'
 import IconVerificationCode from '~icons/custom/verificationCode'
 import IconPhone from '~icons/custom/phone'
 import BodyOverlay from '@components/BodyOverlay.vue'
@@ -11,8 +11,8 @@ import TheLoadingSlot from './TheLoadingSlot.vue'
 import ThePhoneNumberInvalidSlot from './ThePhoneNumberInvalidSlot.vue'
 import TheVerificationCodeInvalid from './TheVerificationCodeInvalidSlot.vue'
 import TheSendVerificationSuccessfullySlot from './TheSendVerificationSuccessfullySlot.vue'
-import { sendVerificationCode, SendVerificationCodeError, SendVerificationCodeErrorType } from '@network/requests/sendVerificationCode'
-import { login, LoginRequestError, LoginRequestErrorType } from '@network/requests/login'
+import { getVerificationCode } from '@network/requests/getVerificationCode'
+import { login, Data } from '@network/logic/login'
 
 // eslint-disable-next-line prefer-const
 let phoneNumber = $ref('')
@@ -42,7 +42,7 @@ const validateVerificationCode = () => {
 }
 
 let isShowOverlay = $ref(false)
-enum OverlaySlotComponent {
+const enum OverlaySlotComponent {
   Loading,
   PhoneNumberInvalid,
   VerificationCodeInvalid,
@@ -74,38 +74,19 @@ const handleSendVerificationClick = async () => {
 
   disableSendVerificationButtion()
 
-  try {
-    const data = await sendVerificationCode(phoneNumber)
-    console.log(data)
-
-    isShowOverlay = true
-    currentOverlaySlot = OverlaySlotComponent.SendVerificationSuccessfully
-  } catch (e) {
-    if (e instanceof SendVerificationCodeError) {
-      switch (e.type) {
-        case SendVerificationCodeErrorType.PhoneNumberInvalid:
-          console.log(e.message)
-          isShowOverlay = false
-          break
-        case SendVerificationCodeErrorType.RequestTooFrequent:
-          console.log(e.message)
-          isShowOverlay = false
-          break
-        case SendVerificationCodeErrorType.ServerDatabaseError:
-          console.log(e.message)
-          isShowOverlay = false
-          break
-        case SendVerificationCodeErrorType.InvalidResponseStatus:
-          console.log(e.message)
-          isShowOverlay = false
-          break
-      }
-    } else {
-      throw e
-    }
-  }
+  match(await getVerificationCode(phoneNumber))
+    .with({ responseType: 'success' }, async result => {
+      const data: Data = await result.responseContent.json()
+      console.log(data)
+      isShowOverlay = true
+      currentOverlaySlot = OverlaySlotComponent.SendVerificationSuccessfully
+    })
+    .otherwise(() => {
+      console.error('getVerificationCode failed')
+    })
 }
 
+// getVerificationCode button countdown transform
 let sendVerificationButtonContent = $ref('获取验证码')
 let isDisableVerificationButton = $ref(false)
 
@@ -124,21 +105,6 @@ const disableSendVerificationButtion = () => {
       sendVerificationButtonContent = `剩余${count}秒`
     }
   }, 1000)
-}
-
-// update indexedDB
-const updateDB = async (token: string, refreshToken: string) => {
-  const db = await openDBApp()
-  const transaction = db.transaction(['authorization', 'selectPage'], 'readwrite')
-
-  transaction.objectStore('authorization').put(token, 'token')
-  transaction.objectStore('authorization').put(refreshToken, 'refreshToken')
-  transaction.objectStore('selectPage').put(true, 'isLoggedIn')
-
-  transaction.done.catch(e => {
-    console.error(e)
-  })
-  db.close()
 }
 
 const appStore = useStore()
@@ -160,35 +126,22 @@ const handleLoginClick = async () => {
 
   isShowOverlay = true
   currentOverlaySlot = OverlaySlotComponent.Loading
-  try {
-    const data = await login(phoneNumber, verificationCode)
-    // updateDB(data.data.token, data.data.refresh_token)
-    appStore.login()
 
-    isShowOverlay = false
-    router.push({
-      name: 'main-account'
+  match(await login(phoneNumber, verificationCode))
+    .with({ responseType: 'success' }, async result => {
+      console.log(result.responseResultQueue)
+      const data = await result.lastContent().json()
+      console.log(data)
+
+      appStore.login()
+      isShowOverlay = false
+      router.push({
+        name: 'main-account'
+      })
     })
-  } catch (e) {
-    if (e instanceof LoginRequestError) {
-      switch (e.type) {
-        case LoginRequestErrorType.RequestMessageDataError:
-          console.log(e.message)
-          isShowOverlay = false
-          break
-        case LoginRequestErrorType.ServerDatabaseError:
-          console.log(e.message)
-          isShowOverlay = false
-          break
-        case LoginRequestErrorType.InvalidResponseStatus:
-          console.log(e.message)
-          isShowOverlay = false
-          break
-      }
-    } else {
-      throw e
-    }
-  }
+    .otherwise(result => {
+      console.log(result.responseResultQueue)
+    })
 }
 </script>
 

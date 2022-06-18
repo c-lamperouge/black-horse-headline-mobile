@@ -11,9 +11,7 @@ const router = useRouter()
 const updateDB = async () => {
   const db = await openDBApp()
   const transaction = db.transaction('selectPage', 'readwrite')
-
   transaction.store.put(true, 'isShowenFirstView')
-
   transaction.done.catch(e => {
     console.error(e)
   })

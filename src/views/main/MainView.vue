@@ -3,7 +3,26 @@ import IconHome from '~icons/custom/home'
 import IconQuestion from '~icons/custom/question'
 import IconVideo from '~icons/custom/video'
 import IconAccount from '~icons/custom/account'
+import { useRoute, useRouter } from 'vue-router'
 
+const route = useRoute()
+const router = useRouter()
+
+const tohome = () => {
+  router.push({ name: 'main-home' })
+}
+
+const toQuestions = () => {
+  router.push({ name: 'main-questions' })
+}
+
+const toVideos = () => {
+  router.push({ name: 'main-videos' })
+}
+
+const toAccount = () => {
+  router.push({ name: 'main-account' })
+}
 </script>
 
 <template>
@@ -15,25 +34,41 @@ import IconAccount from '~icons/custom/account'
     </RouterView>
 
     <footer>
-      <div class="tab-cell">
+      <div
+        class="tab-cell"
+        :class="{'-active': route.name === 'main-home'}"
+        @click="tohome"
+      >
         <IconHome class="icon" />
 
         <span>首页</span>
       </div>
 
-      <div class="tab-cell">
+      <div
+        class="tab-cell"
+        :class="{'-active': route.name === 'main-questions'}"
+        @click="toQuestions"
+      >
         <IconQuestion class="icon" />
 
         <span>问答</span>
       </div>
 
-      <div class="tab-cell">
+      <div
+        class="tab-cell"
+        :class="{'-active': route.name === 'main-videos'}"
+        @click="toVideos"
+      >
         <IconVideo class="icon" />
 
         <span>视频</span>
       </div>
 
-      <div class="tab-cell -active">
+      <div
+        class="tab-cell"
+        :class="{'-active': route.name === 'main-account'}"
+        @click="toAccount"
+      >
         <IconAccount class="icon" />
 
         <span>我的</span>

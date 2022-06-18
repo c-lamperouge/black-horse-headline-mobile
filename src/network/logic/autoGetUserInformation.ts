@@ -1,5 +1,5 @@
 import { match } from 'ts-pattern'
-import { openDBApp } from '@stores/openDB'
+import { openAppDB } from '@stores/openDB'
 import { getUserInformation } from '@network/requests/getUserInformation'
 import type { Data } from '@network/requests/getUserInformation'
 import { updateToken } from '@network/requests/updateToken'
@@ -32,7 +32,7 @@ const autogetUserInformation: AutoGetUserInformation = async (token: string) => 
 }
 
 const readRefreshToken = async () => {
-  const db = await openDBApp()
+  const db = await openAppDB()
   const transaction = db.transaction('authorization')
   const refreshToken = await transaction.store.get('refreshToken')
   transaction.done.catch(e => {

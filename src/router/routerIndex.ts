@@ -36,6 +36,21 @@ const routes: Array<RouteRecordRaw> = [
         redirect: '/main/account'
       },
       {
+        path: 'home',
+        name: 'main-home',
+        component: () => import('@views/main/MainHome.vue')
+      },
+      {
+        path: 'questions',
+        name: 'main-questions',
+        component: () => import('@views/main/MainQuestions.vue')
+      },
+      {
+        path: 'videos',
+        name: 'main-videos',
+        component: () => import('@views/main/MainVideos.vue')
+      },
+      {
         path: 'account',
         name: 'main-account',
         component: () => import('@views/main/MainAccount.vue')

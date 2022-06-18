@@ -2,6 +2,7 @@
 import { $ref } from 'vue/macros'
 import { computed } from 'vue'
 import { useStore } from '@stores/app'
+import { openAppDB } from '@stores/openDB'
 import { useRouter } from 'vue-router'
 import { match } from 'ts-pattern'
 import IconVerificationCode from '~icons/custom/verificationCode'
@@ -41,6 +42,7 @@ const validateVerificationCode = () => {
   }
 }
 
+// handle overlay slot dynamic component switch
 let isShowOverlay = $ref(false)
 const enum OverlaySlotComponent {
   Loading,
@@ -64,6 +66,7 @@ const overlaySlotComponent = computed(() => {
   }
 })
 
+// handle send verification code button click
 const handleSendVerificationClick = async () => {
   validatePhoneNumber()
   if (!isPhoneNumberValid) {
@@ -107,6 +110,7 @@ const disableSendVerificationButtion = () => {
   }, 1000)
 }
 
+// handle login button click
 const appStore = useStore()
 const router = useRouter()
 const handleLoginClick = async () => {
@@ -131,7 +135,7 @@ const handleLoginClick = async () => {
     .with({ responseType: 'success' }, async result => {
       console.log(result.responseResultQueue)
       const data = await result.lastContent().json()
-      console.log(data)
+      await updateStoreAuthorization(data)
 
       appStore.login()
       isShowOverlay = false
@@ -142,6 +146,25 @@ const handleLoginClick = async () => {
     .otherwise(result => {
       console.log(result.responseResultQueue)
     })
+}
+
+const updateStoreAuthorization = async (data: Data) => {
+  const db = await openAppDB()
+  const transaction = db.transaction('userInformation', 'readwrite')
+  transaction.store.put(data.data.id, 'id')
+  transaction.store.put(data.data.name, 'name')
+  transaction.store.put(data.data.photo, 'avatarUrl')
+  transaction.store.put(data.data.intro, 'introduction')
+  transaction.store.put(Boolean(data.data.is_media), 'isWeMedia')
+  transaction.store.put(data.data.ceti, 'certification')
+  transaction.store.put(data.data.art_count, 'articleCount')
+  transaction.store.put(data.data.fans_count, 'fansCount')
+  transaction.store.put(data.data.follow_count, 'followerCount')
+  transaction.store.put(data.data.like_count, 'likeCount')
+  transaction.done.catch(e => {
+    console.error(e)
+  })
+  db.close()
 }
 </script>
 

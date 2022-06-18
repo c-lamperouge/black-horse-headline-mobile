@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { match } from 'ts-pattern'
-import { openDBApp } from '@stores/openDB'
+import { openAppDB } from '@stores/openDB'
 import { getAuthorization } from '@network/requests/getAuthorization'
 import type { Data as AuthorizationData } from '@network/requests/getAuthorization'
 import { autogetUserInformation } from '@network/logic/autoGetUserInformation'
@@ -10,7 +10,7 @@ const getAuthorizationTest = async () => {
   match(await getAuthorization('17085420503', '246810'))
     .when(response => response.ok, async response => {
       const data: AuthorizationData = await response.json()
-      const db = await openDBApp()
+      const db = await openAppDB()
       const transaction = db.transaction('authorization', 'readwrite')
       transaction.store.put(data.data.token, 'token')
       transaction.store.put(data.data.refresh_token, 'refreshToken')
@@ -27,7 +27,7 @@ const getAuthorizationTest = async () => {
 }
 
 const getToken = async () => {
-  const db = await openDBApp()
+  const db = await openAppDB()
   const transaction = db.transaction('authorization')
   const token = await transaction.store.get('token')
   transaction.done.catch(e => {

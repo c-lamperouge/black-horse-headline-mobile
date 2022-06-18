@@ -2,12 +2,12 @@
 import { onBeforeMount } from 'vue'
 import { useStore } from '@stores/app'
 import { useRouter } from 'vue-router'
-import { openDBApp } from '@stores/openDB'
+import { openAppDB } from '@stores/openDB'
 
 const appStore = useStore()
 // according indexedDB to update appStore
 const updateAppStore = async () => {
-  const db = await openDBApp()
+  const db = await openAppDB()
   const transaction = db.transaction('selectPage', 'readonly')
 
   const isShowenFirstView = await transaction.store.get('isShowenFirstView')

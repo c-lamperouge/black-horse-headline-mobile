@@ -1,6 +1,6 @@
 import { openDB, DBSchema } from 'idb'
 
-interface DBApp extends DBSchema {
+interface DB extends DBSchema {
   selectPage: {
     key: 'isShowenFirstView' | 'isLoggedIn'
     value: boolean
@@ -9,10 +9,15 @@ interface DBApp extends DBSchema {
     key: 'token' | 'refreshToken'
     value: string
   }
+  userInformation: {
+    key: 'id' | 'name' | 'avatarUrl' | 'isWeMedia' | 'introduction' | 'certification'
+      | 'articleCount' | 'followerCount' | 'fansCount' | 'likeCount'
+    value: string | number | boolean
+  }
 }
 
-const openDBApp = async () => {
-  const db = await openDB<DBApp>('app', 1, {
+const openAppDB = async () => {
+  const db = await openDB<DB>('headline-mobile', 1, {
     blocked: () => {
       // seems an older version of this app is running in another tab
       window.alert('Please close this app opened in other browser tabs.')
@@ -29,13 +34,12 @@ const openDBApp = async () => {
       if (oldVersion === 0 && newVersion === 1) {
         db.createObjectStore('selectPage')
         db.createObjectStore('authorization')
+        db.createObjectStore('userInformation')
       } else {
         console.error('unknown database network version change')
       }
 
-      transaction.done.then(() => {
-        console.log('open database network successfully')
-      }).catch(e => {
+      transaction.done.catch(e => {
         console.error(e)
       })
     }
@@ -45,5 +49,5 @@ const openDBApp = async () => {
 }
 
 export {
-  openDBApp
+  openAppDB
 }

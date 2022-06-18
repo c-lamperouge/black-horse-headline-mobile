@@ -1,7 +1,39 @@
 <script setup lang="ts">
+import { onBeforeMount } from 'vue'
+import { $ref } from 'vue/macros'
+import { openAppDB } from '@stores/openDB'
 import IconFavorite from '~icons/custom/favorite'
 import IconHistory from '~icons/custom/history'
 import IconArrowRight from '~icons/ic/baseline-keyboard-arrow-right'
+
+let name = $ref('')
+let avatarUrl = $ref('')
+let articleCount = $ref(0)
+let followerCount = $ref(0)
+let fansCount = $ref(0)
+let likeCount = $ref(0)
+
+const readStoreUserInformation = async () => {
+  const db = await openAppDB()
+  const transaction = db.transaction('userInformation')
+  const storeName = await transaction.store.get('name')
+  const storeAvatarUrl = await transaction.store.get('avatarUrl')
+  const storeArticleCount = await transaction.store.get('articleCount')
+  const storeFollowerCount = await transaction.store.get('followerCount')
+  const storeFansCount = await transaction.store.get('fansCount')
+  const storeLikeCount = await transaction.store.get('likeCount')
+  transaction.done.then(() => {
+    name = storeName as string
+    avatarUrl = storeAvatarUrl as string
+    articleCount = storeArticleCount as number
+    followerCount = storeFollowerCount as number
+    fansCount = storeFansCount as number
+    likeCount = storeLikeCount as number
+  }).catch(reason => {
+    console.log(reason)
+  })
+}
+onBeforeMount(readStoreUserInformation)
 </script>
 
 <template>
@@ -10,12 +42,12 @@ import IconArrowRight from '~icons/ic/baseline-keyboard-arrow-right'
       <div class="character">
         <div class="left">
           <img
-            src="../../assets/image/avatar.jpg"
+            :src="avatarUrl"
             alt="avatar"
             class="avatar"
           >
 
-          <span class="name">黑马头条号</span>
+          <span class="name">{{ name }}</span>
         </div>
 
         <button>编辑资料</button>
@@ -23,22 +55,22 @@ import IconArrowRight from '~icons/ic/baseline-keyboard-arrow-right'
 
       <div class="count">
         <div class="item">
-          <span class="number">8</span>
+          <span class="number">{{ articleCount }}</span>
           <span class="field">头条</span>
         </div>
 
         <div class="item">
-          <span class="number">66</span>
+          <span class="number">{{ followerCount }}</span>
           <span class="field">关注</span>
         </div>
 
         <div class="item">
-          <span class="number">88</span>
+          <span class="number">{{ fansCount }}</span>
           <span class="field">粉丝</span>
         </div>
 
         <div class="item">
-          <span class="number">120</span>
+          <span class="number">{{ likeCount }}</span>
           <span class="field">获赞</span>
         </div>
       </div>
@@ -122,6 +154,7 @@ import IconArrowRight from '~icons/ic/baseline-keyboard-arrow-right'
         height: 132px;
         border: 4px solid white;
         border-radius: 66px;
+        object-fit: cover;
         vertical-align: middle;
       }
 

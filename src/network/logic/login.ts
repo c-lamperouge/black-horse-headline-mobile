@@ -1,5 +1,5 @@
 import { match } from 'ts-pattern'
-import { openDBApp } from '@stores/openDB'
+import { openAppDB } from '@stores/openDB'
 import { getAuthorization } from '@network/requests/getAuthorization'
 import type { Data as AuthorizationData } from '@network/requests/getAuthorization'
 import { getUserInformation } from '@network/requests/getUserInformation'
@@ -14,7 +14,7 @@ const login: Login = async (phoneNumber, verificationCode) => {
   return match(await getAuthorization(phoneNumber, verificationCode))
     .with({ responseType: 'success' }, async result => {
       multipleResponseResult.enqueue(result)
-      const token = await updateDBApp(result.responseContent)
+      const token = await updateStoreAuthorization(result.responseContent)
 
       return match(await getUserInformation(token))
         .with({ responseType: 'success' }, result => {
@@ -35,12 +35,12 @@ const login: Login = async (phoneNumber, verificationCode) => {
     })
 }
 
-const updateDBApp = async (response: Response) => {
+const updateStoreAuthorization = async (response: Response) => {
   const data: AuthorizationData = await response.json()
   const token = data.data.token
   const refreshToken = data.data.refresh_token
 
-  const db = await openDBApp()
+  const db = await openAppDB()
   const transaction = db.transaction(['authorization', 'selectPage'], 'readwrite')
   transaction.objectStore('authorization').put(token, 'token')
   transaction.objectStore('authorization').put(refreshToken, 'refreshToken')

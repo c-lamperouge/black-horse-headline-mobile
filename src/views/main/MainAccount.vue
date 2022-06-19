@@ -120,6 +120,7 @@ onBeforeMount(readStoreUserInformation)
   flex: 1;
   flex-direction: column;
   justify-content: flex-start;
+  background-color: #f5f7f9;
 }
 
 .base-information {

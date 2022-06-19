@@ -82,7 +82,6 @@ const toAccount = () => {
   display: block flex;
   flex: 1;
   flex-direction: column;
-  background-color: #edeff3;
 
   & > footer {
     display: flex;
@@ -91,6 +90,7 @@ const toAccount = () => {
     align-items: center;
     justify-content: space-around;
     background-color: white;
+    box-shadow: 0 0 8px 0 rgb(0 0 0 / 24%);
   }
 }
 

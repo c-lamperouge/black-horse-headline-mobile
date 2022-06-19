@@ -36,7 +36,7 @@ const selectPage = async () => {
   } else {
     if (appStore.isLoggedIn) {
       router.push({
-        name: 'main-account'
+        name: 'main-home'
       })
     } else {
       router.push({

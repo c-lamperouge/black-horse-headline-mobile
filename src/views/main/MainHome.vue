@@ -1,8 +1,14 @@
 <script setup lang="ts">
-import { reactive } from 'vue'
+import { reactive, onBeforeMount, defineAsyncComponent } from 'vue'
 import { $ref } from 'vue/macros'
 import IconSearch from '~icons/ic/baseline-search'
 import IconMenu from '~icons/ic/round-menu'
+import ArticleListLoading from '@views/main/articleList/ArticleListLoading.vue'
+import ArticleListError from '@views/main/articleList/ArticleListError.vue'
+import { autoGetUserChannels } from '@network/logic/autoGetUserChannels'
+import type { Data } from '@network/logic/autoGetUserChannels'
+import { match } from 'ts-pattern'
+import EditChannel from './home/EditChannel.vue'
 
 // about header element
 const headerEdit = $ref<HTMLInputElement | null>(null)
@@ -23,37 +29,52 @@ const handleHeaderEditBlur = () => {
   headerEditModel = ''
 }
 
-// about tab bar element
-interface Tab {
+// about channel tab bar element
+interface Channel {
   id: number
-  title: string
+  name: string
 }
-const tabs: Array<Tab> = reactive([
-  {
-    id: 1,
-    title: '推荐'
-  },
-  {
-    id: 2,
-    title: '热门话题'
-  },
-  {
-    id: 3,
-    title: '科技动态'
-  },
-  {
-    id: 4,
-    title: 'HTML'
-  },
-  {
-    id: 5,
-    title: 'CSS'
-  },
-  {
-    id: 6,
-    title: 'JS'
-  }
-])
+const channels: Array<Channel> = reactive([])
+let activeChannelId = $ref(0)
+
+onBeforeMount(async () => {
+  match(await autoGetUserChannels())
+    .with({ responseType: 'success' }, async result => {
+      const data: Data = await result.lastContent().json()
+      data.data.channels.forEach(channel => {
+        channels.push({
+          id: channel.id,
+          name: channel.name
+        })
+      })
+
+      activeChannelId = data.data.channels[0].id
+    })
+    .otherwise(result => {
+      console.log(result.responseResultQueue)
+    })
+})
+
+const handleChannelClick = (channel: Channel) => {
+  activeChannelId = channel.id
+}
+
+let isShowEditChannel = $ref(false)
+const showEditChannel = () => {
+  isShowEditChannel = true
+}
+
+// article list component
+const ArticleList = defineAsyncComponent({
+  loader: () => import('@views/main/articleList/ArticleList.vue'),
+  loadingComponent: ArticleListLoading,
+  // Delay before showing the loading component. Default: 200ms.
+  delay: 200,
+  errorComponent: ArticleListError,
+  // The error component will be displayed if a timeout is
+  // provided and exceeded. Default: Infinity.
+  timeout: 3000
+})
 </script>
 
 <template>
@@ -88,26 +109,35 @@ const tabs: Array<Tab> = reactive([
       </div>
     </header>
 
-    <nav class="header-tab-bar">
-      <div
-        v-for="tab in tabs"
-        :key="tab.id"
-        class="item -active"
-      >
-        <span class="title">{{ tab.title }}</span>
+    <nav class="channel-tab-bar">
+      <div class="left">
+        <div
+          v-for="channel in channels"
+          :key="channel.id"
+          class="item"
+          :class="{'-active': activeChannelId === channel.id}"
+          @click="handleChannelClick(channel)"
+        >
+          <span class="title">{{ channel.name }}</span>
+        </div>
       </div>
 
-      <div class="menu">
-        <IconMenu class="icon" />
+      <div
+        v-if="channels.length >= 4"
+        class="menu"
+        @click="showEditChannel"
+      >
+        <IconMenu class="icon1" />
       </div>
     </nav>
 
-    <RouterView v-slot="{Component}">
-      <KeepAlive>
-        <component :is="Component" />
-      </KeepAlive>
-    </RouterView>
+    <ArticleList :channel-id="activeChannelId" />
   </div>
+
+  <EditChannel
+    v-model="isShowEditChannel"
+    :channels="channels"
+  />
 </template>
 
 <style lang="postcss" scoped>
@@ -116,6 +146,7 @@ const tabs: Array<Tab> = reactive([
   flex: 1;
   flex-direction: column;
   justify-content: flex-start;
+  overflow-y: auto;
 }
 
 .header-search {
@@ -181,60 +212,66 @@ const tabs: Array<Tab> = reactive([
   white-space: nowrap;
 }
 
-.header-tab-bar {
-  position: relative;
+.channel-tab-bar {
   display: block flex;
   width: 100%;
   height: 82px;
-  overflow-x: auto;
 
-  & > .item {
-    position: relative;
-    display: block flex;
-    flex: 0 0 200px;
-    align-items: center;
-    justify-content: center;
-    border-bottom: 1px solid #edeff3;
-    transition: background-color 0.25s linear 0s;
+  & > .left {
+    flex: 1;
+    overflow-x: auto;
+    white-space: nowrap;
 
-    &:active {
-      background-color: #f2f3f5;
-    }
+    & > .item {
+      position: relative;
+      display: inline flex;
+      width: 200px;
+      height: 100%;
+      box-sizing: border-box;
+      align-items: center;
+      justify-content: center;
+      border-bottom: 1px solid #edeff3;
+      transition: background-color 0.25s linear 0s;
+      vertical-align: top;
 
-    &.-active {
-      &::after {
-        position: absolute;
-        bottom: 10px;
-        left: 50%;
-        display: block;
-        width: 30px;
-        height: 6px;
-        background-color: #3296fa;
-        border-radius: 3px;
-        content: "";
-        transform: translateX(-50%);
+      &:active {
+        background-color: #f2f3f5;
+      }
+
+      &.-active {
+        &::after {
+          position: absolute;
+          bottom: 10px;
+          left: 50%;
+          display: block;
+          width: 30px;
+          height: 6px;
+          background-color: #3296fa;
+          border-radius: 3px;
+          content: "";
+          transform: translateX(-50%);
+        }
+      }
+
+      & > .title {
+        color: #333;
+        font-size: 30px;
       }
     }
 
-    & > .title {
-      color: #333;
-      font-size: 30px;
+    & > .item + .item {
+      border-left: 1px solid #edeff3;
     }
   }
 
-  & > .item + .item {
-    border-left: 1px solid #edeff3;
-  }
-
   & > .menu {
-    position: sticky;
-    right: 0;
     display: block flex;
+    width: 66px;
     height: 100%;
-    flex: 0 0 66px;
     align-items: center;
     justify-content: center;
-    backdrop-filter: blur(10px);
+    background-color: white;
+    box-shadow: 0 0 8px rgb(0 0 0 / 24%);
     transition: background-color 0.25s linear 0s;
 
     &:active {

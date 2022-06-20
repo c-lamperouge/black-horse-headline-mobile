@@ -80,6 +80,7 @@ const toAccount = () => {
 <style lang="postcss" scoped>
 .block-container {
   display: block flex;
+  overflow: hidden;
   flex: 1;
   flex-direction: column;
 

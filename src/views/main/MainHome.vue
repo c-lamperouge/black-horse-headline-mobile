@@ -73,7 +73,7 @@ const ArticleList = defineAsyncComponent({
   errorComponent: ArticleListError,
   // The error component will be displayed if a timeout is
   // provided and exceeded. Default: Infinity.
-  timeout: 3000
+  timeout: 6000
 })
 </script>
 

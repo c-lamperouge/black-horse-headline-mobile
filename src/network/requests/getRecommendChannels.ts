@@ -1,6 +1,5 @@
 import { baseURL } from '@network/URL'
 import { ResponseResult } from '@network/ResponseResult'
-import { getToken } from '@stores/dBStoreAuthorization'
 
 interface Data {
   message: string
@@ -12,16 +11,12 @@ interface Data {
   }
 }
 
-type GetUserChannels = () => Promise<ResponseResult>
+type GetRecommendChannels = () => Promise<ResponseResult>
 
-const getUserChannels: GetUserChannels = async () => {
-  const response = await fetch(`${baseURL}/v1_0/user/channels`, {
+const getRecommendChannels: GetRecommendChannels = async () => {
+  const response = await fetch(`${baseURL}/v1_0/channels`, {
     method: 'GET',
-    mode: 'cors',
-    headers: {
-      'Content-Type': 'application/json;charset=utf-8',
-      Authorization: `Bearer ${await getToken()}`
-    }
+    mode: 'cors'
   })
 
   if (response.ok) {
@@ -32,7 +27,7 @@ const getUserChannels: GetUserChannels = async () => {
 }
 
 export {
-  getUserChannels
+  getRecommendChannels
 }
 
 export type {

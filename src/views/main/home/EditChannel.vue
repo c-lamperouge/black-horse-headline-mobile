@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { $computed } from 'vue/macros'
+import { $computed, $ref } from 'vue/macros'
 import BodyOverlay from '@/components/BodyOverlay.vue'
 import IconClose from '~icons/ic/baseline-close'
+import RecommendChannelList from './RecommendChannelList.vue'
+import ChannelListLoading from './ChannelListLoading.vue'
 
 interface ComponentProperties {
   modelValue: boolean
@@ -29,6 +31,13 @@ let isShowOverlay = $computed<boolean>({
 const closeOverlay = () => {
   isShowOverlay = false
 }
+
+// edit state
+let isEditing = $ref(false)
+
+const switchEditState = () => {
+  isEditing = !isEditing
+}
 </script>
 
 <template>
@@ -48,8 +57,11 @@ const closeOverlay = () => {
             />
           </span>
 
-          <button class="edit">
-            编辑
+          <button
+            class="edit"
+            @click="switchEditState"
+          >
+            {{ isEditing ? '完成' : '编辑' }}
           </button>
         </div>
 
@@ -63,6 +75,13 @@ const closeOverlay = () => {
               class="item"
             >
               {{ channel.name }}
+
+              <div
+                v-show="isEditing"
+                class="delete"
+              >
+                <IconClose class="icon" />
+              </div>
             </div>
           </div>
         </section>
@@ -70,15 +89,13 @@ const closeOverlay = () => {
         <section class="recommend-channels">
           <h3>频道推荐</h3>
 
-          <div class="channel-list">
-            <div
-              v-for="i in 10"
-              :key="i"
-              class="item"
-            >
-              Linux
-            </div>
-          </div>
+          <Suspense>
+            <RecommendChannelList />
+
+            <template #fallback>
+              <ChannelListLoading />
+            </template>
+          </Suspense>
         </section>
       </div>
     </Transition>
@@ -175,12 +192,31 @@ const closeOverlay = () => {
   gap: 22px;
 
   & > .item {
+    position: relative;
     height: 80px;
     flex: 0 0 160px;
     background-color: #f4f5f6;
     border-radius: 6px;
     line-height: 80px;
     text-align: center;
+
+    & > .delete {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      display: block flex;
+      width: 32px;
+      height: 32px;
+      align-items: center;
+      justify-content: center;
+      background-color: white;
+      border-radius: 16px;
+      box-shadow: 0 0 8px 0 rgb(0 0 0 / 24%);
+
+      & > .icon {
+        font-size: 16px;
+      }
+    }
   }
 }
 

@@ -1,0 +1,54 @@
+<script setup lang="ts">
+import { reactive } from 'vue'
+import { match } from 'ts-pattern'
+import { getRecommendChannels } from '@network/requests/getRecommendChannels'
+import type { Data } from '@network/requests/getRecommendChannels'
+
+type Channels = Array<{
+  id: string
+  name: string
+}>
+const channels: Channels = reactive([])
+
+// network request
+const requestResult = await getRecommendChannels()
+match(requestResult)
+  .with({ responseType: 'success' }, async result => {
+    const data: Data = await result.responseContent.json()
+    data.data.channels.forEach(channel => {
+      channels.push(channel)
+    })
+  })
+  .otherwise(result => {
+    console.error(result)
+  })
+</script>
+
+<template>
+  <div class="channel-list">
+    <div
+      v-for="channel in channels"
+      :key="channel.id"
+      class="item"
+    >
+      {{ channel.name }}
+    </div>
+  </div>
+</template>
+
+<style scoped lang="postcss">
+.channel-list {
+  display: block flex;
+  flex-flow: row wrap;
+  gap: 22px;
+
+  & > .item {
+    height: 80px;
+    flex: 0 0 160px;
+    background-color: #f4f5f6;
+    border-radius: 6px;
+    line-height: 80px;
+    text-align: center;
+  }
+}
+</style>

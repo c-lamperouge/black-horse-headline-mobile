@@ -99,6 +99,9 @@ const formatDate = (date: Date) => {
     & > .cover {
       max-width: 232px;
       max-height: 146px;
+      margin-top: 25px;
+      margin-bottom: 25px;
+      margin-left: 25px;
       object-fit: cover;
       vertical-align: middle;
     }

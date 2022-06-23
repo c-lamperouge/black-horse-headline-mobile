@@ -2,11 +2,14 @@
 </script>
 
 <template>
-  <div class="block-container" />
+  <div class="search-history">
+    history
+  </div>
 </template>
 
 <style scoped lang="postcss">
-.block-container {
+.search-history {
+  width: 100%;
   flex: 1;
 }
 </style>

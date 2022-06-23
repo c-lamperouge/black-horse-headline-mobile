@@ -1,41 +1,19 @@
 <script setup lang="ts">
-import { useStore } from '@stores/app'
-import { openAppDB } from '@stores/openDB'
 import { useRouter } from 'vue-router'
+import { updateViewPath } from '@stores/dBStoreView'
 import IconFirstView from '~icons/custom/firstView'
 
-const appStore = useStore()
 const router = useRouter()
-
-// update indexedDB
-const updateDB = async () => {
-  const db = await openAppDB()
-  const transaction = db.transaction('selectPage', 'readwrite')
-  transaction.store.put(true, 'isShowenFirstView')
-  transaction.done.catch(e => {
-    console.error(e)
-  })
-  db.close()
-}
 
 // event handle
 const toNextPage = () => {
-  appStore.hideFirstView()
-
-  if (appStore.isLoggedIn) {
-    router.push('test')
-  } else {
-    router.push({
-      name: 'login'
-    })
-  }
-
-  updateDB()
+  router.push('/login')
+  updateViewPath('/login')
 }
 </script>
 
 <template>
-  <div class="block-container">
+  <div class="splash-screen">
     <IconFirstView class="icon-first-view" />
 
     <div class="section-down">
@@ -54,9 +32,9 @@ const toNextPage = () => {
 </template>
 
 <style lang="postcss" scoped>
-.block-container {
+.splash-screen {
   display: block flex;
-  flex: 1;
+  height: 100vh;
   flex-direction: column;
   align-items: center;
   justify-content: space-around;

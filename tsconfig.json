@@ -32,6 +32,10 @@
       "@network/*": [
         "src/network/*.ts",
         "src/network/*.d.ts"
+      ],
+      "@views/*": [
+        "src/views/*.ts",
+        "src/views/*.d.ts"
       ]
     }
   },

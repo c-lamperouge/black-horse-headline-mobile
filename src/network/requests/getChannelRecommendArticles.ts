@@ -21,7 +21,7 @@ interface Data {
   }
 }
 
-type GetChannelRecommendArticles = (channelId: number, timestamp: number,) => Promise<ResponseResult>
+type GetChannelRecommendArticles = (channelId: string, timestamp: number,) => Promise<ResponseResult>
 
 const getChannelRecommendArticles: GetChannelRecommendArticles = async (channelId, timestamp) => {
   const response = await fetch(`${baseURL}/v1_0/articles?channel_id=${channelId}&timestamp=${timestamp}`, {

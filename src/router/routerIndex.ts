@@ -1,65 +1,57 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
-
-declare module 'vue-router' {
-  interface RouteMeta {
-    transition: string
-  }
-}
+import { appendTransition } from './routerTransition'
 
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
-    component: () => import('@views/WhiteScreen.vue')
+    component: () => import('@views/InitApp.vue')
   },
   {
-    path: '/first-view',
-    name: 'first-view',
-    component: () => import('@views/FirstView.vue')
+    path: '/splash-screen',
+    component: () => import('@views/SplashScreen.vue')
   },
   {
     path: '/login',
-    name: 'login',
     component: () => import('@views/Login&SignIn/LoginView.vue')
   },
   {
     path: '/sign-in',
-    name: 'sign-in',
     component: () => import('@views/Login&SignIn/SignInView.vue')
   },
   {
     path: '/main',
-    name: 'main',
     component: () => import('@views/main/MainView.vue'),
     children: [
       {
         path: '',
-        redirect: '/main/account'
+        redirect: '/main/home'
       },
       {
         path: 'home',
-        name: 'main-home',
-        component: () => import('@views/main/MainHome.vue')
+        component: () => import('@views/main/home/MainHome.vue')
       },
       {
-        path: 'questions',
-        name: 'main-questions',
-        component: () => import('@views/main/MainQuestions.vue')
-      },
-      {
-        path: 'videos',
-        name: 'main-videos',
-        component: () => import('@views/main/MainVideos.vue')
+        path: 'search',
+        component: () => import('@views/main/search/MainSearch.vue'),
+        children: [
+          {
+            path: '',
+            redirect: '/main/search/history'
+          },
+          {
+            path: 'history',
+            component: () => import('@views/main/search/SearchHistory.vue')
+          }
+        ]
       },
       {
         path: 'account',
-        name: 'main-account',
-        component: () => import('@views/main/MainAccount.vue')
+        component: () => import('@views/main/account/MainAccount.vue')
       }
     ]
   },
   {
     path: '/test',
-    name: 'test',
     component: () => import('@views/TheTest.vue')
   }
 ]
@@ -68,5 +60,6 @@ const router = createRouter({
   history: createWebHistory(),
   routes
 })
+router.afterEach(appendTransition)
 
 export default router

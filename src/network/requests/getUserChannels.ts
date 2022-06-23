@@ -6,7 +6,7 @@ interface Data {
   message: string
   data: {
     channels: Array<{
-      id: string
+      id: number
       name: string
     }>
   }

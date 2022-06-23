@@ -44,7 +44,7 @@ const handleBackdropClick = () => {
       />
     </Transition>
 
-    <slot />
+    <slot :is-show="modelValue" />
   </Teleport>
 </template>
 
@@ -57,7 +57,7 @@ const handleBackdropClick = () => {
   height: 100%;
 
   &.-bg-translucent {
-    background-color: rgb(0 0 0 / 30%);
+    background-color: rgb(0 0 0 / 40%);
   }
 
   &.-bg-transparent {

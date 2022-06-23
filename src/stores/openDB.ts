@@ -1,9 +1,10 @@
 import { openDB, DBSchema } from 'idb'
+import type { ViewPath } from '@views/viewPath'
 
 interface DB extends DBSchema {
-  selectPage: {
-    key: 'isShowenFirstView' | 'isLoggedIn'
-    value: boolean
+  view: {
+    key: 'viewPath'
+    value: ViewPath
   }
   authorization: {
     key: 'token' | 'refreshToken'
@@ -32,7 +33,7 @@ const openAppDB = async () => {
 
     upgrade: (db, oldVersion, newVersion, transaction) => {
       if (oldVersion === 0 && newVersion === 1) {
-        db.createObjectStore('selectPage')
+        db.createObjectStore('view')
         db.createObjectStore('authorization')
         db.createObjectStore('userInformation')
       } else {

@@ -38,6 +38,10 @@ let isEditing = $ref(false)
 const switchEditState = () => {
   isEditing = !isEditing
 }
+
+const cancelEdit = () => {
+  isEditing = false
+}
 </script>
 
 <template>
@@ -50,12 +54,23 @@ const switchEditState = () => {
         class="edit-channel"
       >
         <div class="row-top">
-          <span class="close">
+          <span
+            v-if="!isEditing"
+            class="close"
+          >
             <IconClose
               class="icon"
               @click="closeOverlay"
             />
           </span>
+
+          <button
+            v-show="isEditing"
+            class="cancel"
+            @click="cancelEdit"
+          >
+            取消
+          </button>
 
           <button
             class="edit"
@@ -90,7 +105,7 @@ const switchEditState = () => {
           <h3>频道推荐</h3>
 
           <Suspense>
-            <RecommendChannelList />
+            <RecommendChannelList :is-editing="isEditing" />
 
             <template #fallback>
               <ChannelListLoading />
@@ -144,9 +159,30 @@ const switchEditState = () => {
     }
   }
 
+  & > .cancel {
+    width: 112px;
+    height: 60px;
+    border: 2px solid hsl(0deg 0% 60%);
+    appearance: none;
+    background-color: transparent;
+    border-radius: 30px;
+    color: hsl(0deg 0% 60%);
+    font-size: 28px;
+
+    &:focus {
+      outline: none;
+    }
+
+    transition: background-color 0.25s linear 0s;
+
+    &:active {
+      background-color: hsl(0deg 0% 95%);
+    }
+  }
+
   & > .edit {
     width: 112px;
-    height: 56px;
+    height: 60px;
     border: 2px solid #eb5253;
     appearance: none;
     background-color: transparent;

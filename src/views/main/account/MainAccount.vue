@@ -2,9 +2,11 @@
 import { onBeforeMount } from 'vue'
 import { $ref } from 'vue/macros'
 import { openAppDB } from '@stores/openDB'
-import IconFavorite from '~icons/custom/favorite'
-import IconHistory from '~icons/custom/history'
+import IconFavorite from '~icons/ic/round-star'
+import IconHistory from '~icons/ic/round-history'
 import IconArrowRight from '~icons/ic/baseline-keyboard-arrow-right'
+import BodyOverlay from '@components/BodyOverlay.vue'
+import ExitAccount from '@views/main/account/ExitAccount.vue'
 
 let name = $ref('')
 let avatarUrl = $ref('')
@@ -34,10 +36,25 @@ const readStoreUserInformation = async () => {
   })
 }
 onBeforeMount(readStoreUserInformation)
+
+// overlay component
+let isShowOverlay = $ref(false)
+
+const handleExitAccountButtonClick = () => {
+  isShowOverlay = true
+}
+
+const handleExitAccountCancel = () => {
+  isShowOverlay = false
+}
+
+const handleExitAccountOk = () => {
+  isShowOverlay = false
+}
 </script>
 
 <template>
-  <div class="block-container">
+  <div class="main-account">
     <section class="base-information">
       <div class="character">
         <div class="left">
@@ -108,19 +125,37 @@ onBeforeMount(readStoreUserInformation)
       </div>
     </section>
 
-    <section class="exit-login">
+    <section
+      class="exit-login"
+      @click="handleExitAccountButtonClick"
+    >
       退出登录
     </section>
+
+    <BodyOverlay
+      v-model="isShowOverlay"
+      :enable-click-cancel="true"
+    >
+      <template #default="{isShow}">
+        <ExitAccount
+          :is-show="isShow"
+          @cancel="handleExitAccountCancel"
+          @ok="handleExitAccountOk"
+        />
+      </template>
+    </BodyOverlay>
   </div>
 </template>
 
 <style lang="postcss" scoped>
-.block-container {
+.main-account {
   display: block flex;
-  flex: 1;
+  width: 100%;
+  height: calc(100vh - 100px);
   flex-direction: column;
   justify-content: flex-start;
   background-color: #f5f7f9;
+  box-shadow: 0 0 12px rgb(0 0 0 / 50%);
 }
 
 .base-information {
@@ -132,7 +167,7 @@ onBeforeMount(readStoreUserInformation)
   justify-content: space-evenly;
   padding: 32px;
   background:
-    url("../../assets/svg/MainAccountBaseInformationBackground.svg"),
+    url("../../../assets/svg/MainAccountBaseInformationBackground.svg"),
     hsl(210deg 95% 59%);
   background-blend-mode: overlay;
   background-position: -5vw -30vw;
@@ -199,13 +234,11 @@ onBeforeMount(readStoreUserInformation)
       flex-direction: column;
       align-items: center;
       justify-content: space-between;
+      border-radius: 6px;
+      transition: background-color 0.25s linear 0s;
 
-      &:nth-of-type(2) {
-        margin-right: 40px;
-      }
-
-      &:nth-of-type(3) {
-        margin-left: 40px;
+      &:active {
+        background-color: hsl(220deg 13% 95% / 24%);
       }
 
       & > .number {
@@ -238,8 +271,7 @@ onBeforeMount(readStoreUserInformation)
     }
 
     & > .icon {
-      width: 45px;
-      height: 45px;
+      font-size: 48px;
 
       &.-favorite {
         color: #eb5253;

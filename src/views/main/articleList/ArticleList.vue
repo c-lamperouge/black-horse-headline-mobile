@@ -6,7 +6,7 @@ import { match } from 'ts-pattern'
 import ArticleItem from '@views/main/articleList/ArticleItem.vue'
 
 interface ComponentProperties {
-  channelId: number
+  channelId: string
   page?: number
   eachPageCount?: number
 }

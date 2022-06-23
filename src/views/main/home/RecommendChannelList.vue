@@ -3,6 +3,13 @@ import { reactive } from 'vue'
 import { match } from 'ts-pattern'
 import { getRecommendChannels } from '@network/requests/getRecommendChannels'
 import type { Data } from '@network/requests/getRecommendChannels'
+import IconAdd from '~icons/ic/baseline-add'
+
+// base
+interface ComponentProperties {
+  isEditing: boolean
+}
+const props = defineProps<ComponentProperties>()
 
 type Channels = Array<{
   id: string
@@ -32,6 +39,13 @@ match(requestResult)
       class="item"
     >
       {{ channel.name }}
+
+      <div
+        v-show="props.isEditing"
+        class="delete"
+      >
+        <IconAdd class="icon" />
+      </div>
     </div>
   </div>
 </template>
@@ -43,12 +57,31 @@ match(requestResult)
   gap: 22px;
 
   & > .item {
+    position: relative;
     height: 80px;
     flex: 0 0 160px;
     background-color: #f4f5f6;
     border-radius: 6px;
     line-height: 80px;
     text-align: center;
+
+    & > .delete {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      display: block flex;
+      width: 32px;
+      height: 32px;
+      align-items: center;
+      justify-content: center;
+      background-color: white;
+      border-radius: 16px;
+      box-shadow: 0 0 8px 0 rgb(0 0 0 / 24%);
+
+      & > .icon {
+        font-size: 16px;
+      }
+    }
   }
 }
 </style>

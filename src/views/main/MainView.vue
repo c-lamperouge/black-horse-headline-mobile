@@ -1,42 +1,45 @@
 <script setup lang="ts">
-import IconHome from '~icons/custom/home'
-import IconQuestion from '~icons/custom/question'
-import IconVideo from '~icons/custom/video'
-import IconAccount from '~icons/custom/account'
-import { useRoute, useRouter } from 'vue-router'
+import IconHome from '~icons/ic/baseline-home'
+import IconSearch from '~icons/ic/baseline-search'
+import IconAccount from '~icons/ic/baseline-person'
+import { useRoute, useRouter, RouterView } from 'vue-router'
 
-const route = useRoute()
+const currentRoute = useRoute()
 const router = useRouter()
 
 const tohome = () => {
-  router.push({ name: 'main-home' })
+  router.push('/main/home')
 }
 
-const toQuestions = () => {
-  router.push({ name: 'main-questions' })
-}
-
-const toVideos = () => {
-  router.push({ name: 'main-videos' })
+const toSearch = () => {
+  router.push('/main/search')
 }
 
 const toAccount = () => {
-  router.push({ name: 'main-account' })
+  router.push('/main/account')
 }
 </script>
 
 <template>
-  <div class="block-container">
-    <RouterView v-slot="{Component}">
-      <KeepAlive>
-        <component :is="Component" />
-      </KeepAlive>
-    </RouterView>
+  <div class="main-view">
+    <div class="transition-container">
+      <RouterView v-slot="{Component, route}">
+        <template v-if="Component">
+          <Transition
+            :name="route.meta.transition2"
+          >
+            <KeepAlive>
+              <component :is="Component" />
+            </KeepAlive>
+          </Transition>
+        </template>
+      </RouterView>
+    </div>
 
     <footer>
       <div
         class="tab-cell"
-        :class="{'-active': route.name === 'main-home'}"
+        :class="{'-active': currentRoute.path.startsWith('/main/home')}"
         @click="tohome"
       >
         <IconHome class="icon" />
@@ -46,52 +49,42 @@ const toAccount = () => {
 
       <div
         class="tab-cell"
-        :class="{'-active': route.name === 'main-questions'}"
-        @click="toQuestions"
+        :class="{'-active': currentRoute.path.startsWith('/main/search')}"
+        @click="toSearch"
       >
-        <IconQuestion class="icon" />
+        <IconSearch class="icon" />
 
-        <span>问答</span>
+        <span>搜索</span>
       </div>
 
       <div
         class="tab-cell"
-        :class="{'-active': route.name === 'main-videos'}"
-        @click="toVideos"
-      >
-        <IconVideo class="icon" />
-
-        <span>视频</span>
-      </div>
-
-      <div
-        class="tab-cell"
-        :class="{'-active': route.name === 'main-account'}"
+        :class="{'-active': currentRoute.path.startsWith('/main/account')}"
         @click="toAccount"
       >
         <IconAccount class="icon" />
 
-        <span>我的</span>
+        <span>账号</span>
       </div>
     </footer>
   </div>
 </template>
 
 <style lang="postcss" scoped>
-.block-container {
+.main-view {
   display: block flex;
-  overflow: hidden;
   flex: 1;
   flex-direction: column;
+  overflow-y: hidden;
 
   & > footer {
     display: flex;
     width: 100%;
-    height: 102px;
+    height: 100px;
     align-items: center;
     justify-content: space-around;
     background-color: white;
-    box-shadow: 0 0 8px 0 rgb(0 0 0 / 24%);
+    box-shadow: 0 0 12px 0 rgb(0 0 0 / 50%);
   }
 }
 
@@ -108,11 +101,19 @@ const toAccount = () => {
   }
 
   & > .icon {
-    font-size: 40px;
+    font-size: 42px;
   }
 
   & > span {
-    font-size: 20px;
+    font-size: 24px;
   }
+}
+
+.transition-container {
+  position: relative;
+  width: 100%;
+  flex: 1;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 </style>

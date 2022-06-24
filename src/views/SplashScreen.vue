@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
 import { updateViewPath } from '@stores/dBStoreView'
-import IconFirstView from '~icons/custom/firstView'
+import IconWelcome from '~icons/custom/welcome'
 
 const router = useRouter()
 
@@ -14,7 +14,7 @@ const toNextPage = () => {
 
 <template>
   <div class="splash-screen">
-    <IconFirstView class="icon-first-view" />
+    <IconWelcome class="icon-welcome" />
 
     <div class="section-down">
       <h1>
@@ -34,13 +34,14 @@ const toNextPage = () => {
 <style lang="postcss" scoped>
 .splash-screen {
   display: block flex;
+  width: 100vw;
   height: 100vh;
   flex-direction: column;
   align-items: center;
   justify-content: space-around;
 }
 
-.icon-first-view {
+.icon-welcome {
   width: 436px;
   height: 348px;
   margin-top: 250px;
@@ -64,7 +65,7 @@ const toNextPage = () => {
     }
 
     & > .right {
-      color: #3698fa;
+      color: var(--theme-color);
     }
   }
 
@@ -80,16 +81,16 @@ const toNextPage = () => {
     width: 260px;
     height: 63px;
     box-sizing: border-box;
-    border: 2px solid #3698fa;
+    border: 2px solid var(--theme-color);
     appearance: none;
     background-color: transparent;
     border-radius: 31.5px;
-    color: #3698fa;
+    color: var(--theme-color);
     font-size: 35px;
     transition: color 0.25s linear 0s, background-color 0.25s linear 0s;
 
     &:active {
-      background-color: #3698fa;
+      background-color: var(--theme-color);
       color: white;
     }
   }

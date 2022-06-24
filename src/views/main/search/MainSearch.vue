@@ -2,7 +2,14 @@
 import { $ref } from 'vue/macros'
 import IconSearch from '~icons/ic/baseline-search'
 import IconClose from '~icons/ic/baseline-close'
-import { RouterView } from 'vue-router'
+import { RouterView, useRouter } from 'vue-router'
+import SearchLoading from '@views/main/search/SearchLoading.vue'
+import { useStore } from '@stores/articleSearch'
+
+// router
+const router = useRouter()
+// store
+const articleSearchStore = useStore()
 
 // about header element
 const search = $ref<HTMLInputElement | null>(null)
@@ -15,18 +22,28 @@ const handleHeaderPlaceholderClick = () => {
   isSearching = true
 }
 
-// eslint-disable-next-line prefer-const
-let searchValue = $ref('')
 const handleSearchFocus = () => {
   isSearching = true
 }
 const handleSearchBlur = () => {
   isSearching = false
-  searchValue = ''
+  articleSearchStore.searchValue = ''
 }
 
 const handleClearMouseDown = () => {
-  searchValue = ''
+  articleSearchStore.searchValue = ''
+  router.push('/main/search/histories')
+}
+
+// logic
+const hancleSearchInput = () => {
+  const switchRouter = () => {
+    if (articleSearchStore.searchValue !== '') {
+      router.push('/main/search/suggestions')
+    }
+  }
+
+  switchRouter()
 }
 </script>
 
@@ -36,11 +53,12 @@ const handleClearMouseDown = () => {
       <div class="container">
         <input
           ref="search"
-          v-model="searchValue"
+          v-model="articleSearchStore.searchValue"
           type="text"
           class="edit"
           @focus="handleSearchFocus"
           @blur="handleSearchBlur"
+          @input="hancleSearchInput"
         >
 
         <Transition name="clear">
@@ -76,7 +94,13 @@ const handleClearMouseDown = () => {
     <RouterView>
       <template #default="{Component}">
         <KeepAlive>
-          <component :is="Component" />
+          <Suspense v-if="Component">
+            <component :is="Component" />
+
+            <template #fallback>
+              <SearchLoading />
+            </template>
+          </Suspense>
         </KeepAlive>
       </template>
     </RouterView>
@@ -96,30 +120,32 @@ const handleClearMouseDown = () => {
 
 .header-search {
   display: block flex;
-  height: 82px;
+  height: 100px;
   align-items: center;
   justify-content: center;
-  background-color: #3296fa;
+  background-color: var(--theme-color);
 
   & > .container {
     position: relative;
-    height: 64px;
-    padding-right: 32px;
-    padding-left: 32px;
+    width: 640px;
+    height: 78px;
+    box-sizing: border-box;
+    padding-right: 48px;
+    padding-left: 48px;
     background-color: rgb(255 255 255 / 20%);
-    border-radius: 32px;
+    border-radius: 38px;
 
     & > .edit {
-      width: 584px;
+      width: 100%;
       height: 100%;
       box-sizing: border-box;
-      padding: 0;
+      padding-right: 30px;
+      padding-left: 30px;
       border: none;
-      margin-right: 32px;
-      margin-left: 32px;
+      margin: 0;
       background-color: transparent;
       color: white;
-      font-size: 28px;
+      font-size: 30px;
 
       &:focus {
         outline: none;
@@ -137,16 +163,17 @@ const handleClearMouseDown = () => {
       align-items: center;
       justify-content: center;
       border-radius: inherit;
+      border-radius: 38px;
       color: white;
       transition: width 0.25s linear 0s;
 
       &.-shrunken {
-        width: 64px;
+        width: 78px;
       }
 
       & > .icon {
         flex-shrink: 0;
-        font-size: 32px;
+        font-size: 30px;
       }
     }
   }
@@ -157,21 +184,21 @@ const handleClearMouseDown = () => {
   top: 0;
   right: 0;
   display: block flex;
-  width: 64px;
+  width: 78px;
   height: 100%;
   align-items: center;
   justify-content: center;
 
   & > .icon1 {
     color: white;
-    font-size: 32px;
+    font-size: 30px;
   }
 }
 
 .slot-placeholder-text {
   overflow: hidden;
   max-width: 2em;
-  font-size: 28px;
+  font-size: 30px;
   white-space: nowrap;
 }
 

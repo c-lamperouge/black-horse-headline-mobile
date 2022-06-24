@@ -1,12 +1,11 @@
 <script setup lang="ts">
 import { $ref } from 'vue/macros'
 import { computed } from 'vue'
-import { useStore } from '@stores/app'
 import { openAppDB } from '@stores/openDB'
 import { useRouter } from 'vue-router'
 import { match } from 'ts-pattern'
-import IconVerificationCode from '~icons/custom/verificationCode'
-import IconPhone from '~icons/custom/phone'
+import IconLock from '~icons/ic/baseline-lock'
+import IconPhone from '~icons/ic/baseline-phone-iphone'
 import BodyOverlay from '@components/BodyOverlay.vue'
 import TheLoadingSlot from './TheLoadingSlot.vue'
 import ThePhoneNumberInvalidSlot from './ThePhoneNumberInvalidSlot.vue'
@@ -78,9 +77,7 @@ const handleSendVerificationClick = async () => {
   disableSendVerificationButtion()
 
   match(await getVerificationCode(phoneNumber))
-    .with({ responseType: 'success' }, async result => {
-      const data: Data = await result.responseContent.json()
-      console.log(data)
+    .with({ responseType: 'success' }, async () => {
       isShowOverlay = true
       currentOverlaySlot = OverlaySlotComponent.SendVerificationSuccessfully
     })
@@ -111,7 +108,6 @@ const disableSendVerificationButtion = () => {
 }
 
 // handle login button click
-const appStore = useStore()
 const router = useRouter()
 const handleLoginClick = async () => {
   validatePhoneNumber()
@@ -133,22 +129,18 @@ const handleLoginClick = async () => {
 
   match(await login(phoneNumber, verificationCode))
     .with({ responseType: 'success' }, async result => {
-      console.log(result.responseResultQueue)
       const data = await result.lastContent().json()
-      await updateStoreAuthorization(data)
+      await updateStoreUserInformation(data)
 
-      appStore.login()
       isShowOverlay = false
-      router.push({
-        name: 'main-account'
-      })
+      router.push('/main/account')
     })
     .otherwise(result => {
       console.log(result.responseResultQueue)
     })
 }
 
-const updateStoreAuthorization = async (data: Data) => {
+const updateStoreUserInformation = async (data: Data) => {
   const db = await openAppDB()
   const transaction = db.transaction('userInformation', 'readwrite')
   transaction.store.put(data.data.id, 'id')
@@ -166,13 +158,17 @@ const updateStoreAuthorization = async (data: Data) => {
   })
   db.close()
 }
+
+// according to state show send verification button
 </script>
 
 <template>
-  <div class="block-container">
-    <nav>登录</nav>
+  <div class="login-view">
+    <h2 class="login-heading">
+      登录
+    </h2>
 
-    <main>
+    <main class="login-main">
       <div
         class="row"
         :class="{'-invalid': !isPhoneNumberValid}"
@@ -193,7 +189,7 @@ const updateStoreAuthorization = async (data: Data) => {
         class="row"
         :class="{'-invalid': !isVerificationCodeValid}"
       >
-        <IconVerificationCode class="icon-block" />
+        <IconLock class="icon-block" />
 
         <input
           v-model.trim="verificationCode"
@@ -204,28 +200,24 @@ const updateStoreAuthorization = async (data: Data) => {
           maxlength="6"
           @blur="validateVerificationCode"
         >
-
-        <span class="separator" />
-
-        <button
-          class="send-verification-code"
-          :disabled="isDisableVerificationButton"
-          @click="handleSendVerificationClick"
-        >
-          {{ sendVerificationButtonContent }}
-        </button>
       </div>
 
-      <div class="blank">
-        <button
-          class="login-button"
-          @click="handleLoginClick"
-        >
-          登录
-        </button>
+      <button
+        class="send-verification"
+        :disabled="isDisableVerificationButton"
+        @click="handleSendVerificationClick"
+      >
+        {{ sendVerificationButtonContent }}
+      </button>
 
-        <span class="privacy-policy">隐私条款</span>
-      </div>
+      <button
+        class="login-button"
+        @click="handleLoginClick"
+      >
+        确定
+      </button>
+
+      <span class="privacy-policy">隐私条款</span>
     </main>
 
     <BodyOverlay
@@ -240,37 +232,36 @@ const updateStoreAuthorization = async (data: Data) => {
 </template>
 
 <style lang="postcss" scoped>
-.block-container {
+.login-view {
   display: block flex;
-  flex: 1;
+  width: 100vw;
+  height: 100vh;
+  box-sizing: border-box;
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
+  padding: 30px;
+  background-color: white;
 }
 
-nav {
+.login-heading {
   display: block flex;
   width: 100%;
-  height: 77px;
   align-items: center;
   justify-content: center;
-  background-color: #3296fa;
-  color: white;
-  font-size: 32px;
+  color: var(--theme-color);
+  font-size: 44px;
 }
 
 .icon-block {
-  width: 26px;
-  height: 40px;
-  margin-right: 38px;
-  margin-left: 10px;
+  margin-right: 30px;
+  margin-left: 30px;
+  font-size: 30px;
 }
 
-main {
+.login-main {
   display: block flex;
   width: 100%;
-  box-sizing: border-box;
-  flex: 1;
   flex-direction: column;
   align-items: center;
 
@@ -281,29 +272,14 @@ main {
     height: 90px;
     box-sizing: border-box;
     align-items: center;
-    padding-right: 32px;
-    padding-left: 32px;
-
-    &::after {
-      position: absolute;
-      top: 0;
-      left: 0;
-      display: block flow;
-      width: 12px;
-      height: 100%;
-      background-color: hsl(354deg 70% 54% / 50%);
-      content: "";
-      transform: scaleX(0);
-      transform-origin: left;
-      transition: transform 0.25s linear 0s;
-    }
+    padding-right: 30px;
+    background-color: hsl(var(--theme-hue) 60% 95%);
+    border-radius: 8px;
+    color: hsl(0deg 0% 15%);
 
     &.-invalid {
+      background-color: hsl(var(--error-hue) 60% 95%);
       color: hsl(354deg 70% 54%);
-
-      &::after {
-        transform: scaleX(1);
-      }
     }
 
     & > input {
@@ -311,10 +287,11 @@ main {
       box-sizing: border-box;
       flex: 1;
       border: none;
-      font-size: 26px;
+      background-color: transparent;
+      font-size: 30px;
 
       &::placeholder {
-        color: #c0c0c0;
+        color: #aaa;
       }
 
       &:focus {
@@ -326,40 +303,22 @@ main {
         color: hsl(354deg 70% 54%);
       }
     }
-
-    & > .separator {
-      display: inline flow-root;
-      width: 2px;
-      height: 46px;
-      margin-right: 20px;
-      margin-left: 20px;
-      background-color: #eee;
-    }
   }
 
   & > .row + .row {
-    border-top: 2px solid #eee;
-  }
-
-  & > .blank {
-    display: block flex;
-    width: 100%;
-    flex: 1;
-    flex-direction: column;
-    align-items: center;
-    justify-content: space-between;
-    background-color: #f5f7f9;
+    margin-top: 20px;
   }
 }
 
-.send-verification-code {
-  width: 152px;
-  height: 46px;
+.send-verification {
+  width: 180px;
+  height: 56px;
   border: none;
-  background-color: #ededed;
-  border-radius: 23px;
+  margin-top: 20px;
+  background-color: hsl(0deg 0% 90%);
+  border-radius: 28px;
   color: #666;
-  font-size: 22px;
+  font-size: 26px;
   transition: background-color 0.25s linear 0s;
 
   &:focus {
@@ -367,11 +326,11 @@ main {
   }
 
   &:active {
-    background-color: hsl(0deg 0% 80%);
+    background-color: hsl(0deg 0% 95%);
   }
 
   &:disabled {
-    background-color: hsl(0deg 0% 80%);
+    background-color: hsl(0deg 0% 95%);
   }
 }
 
@@ -379,12 +338,13 @@ main {
   width: 694px;
   height: 88px;
   border: none;
-  margin-top: 53px;
+  margin-top: 44px;
+  margin-bottom: 44px;
   appearance: none;
   background-color: #6db4fb;
-  border-radius: 10px;
+  border-radius: 44px;
   color: white;
-  font-size: 30px;
+  font-size: 32px;
   transition: background-color 0.25s linear 0s;
 
   &:focus {
@@ -397,8 +357,25 @@ main {
 }
 
 .privacy-policy {
-  margin-bottom: 52px;
   color: #666;
-  font-size: 25px;
+  font-size: 26px;
+}
+
+.slide-up-enter-active {
+  transition: transform 0.25s ease-out 0s;
+}
+
+.slide-up-leave-active {
+  transition: transform 0.25s ease-out 0s;
+}
+
+.slide-up-enter-from {
+  opacity: 0;
+  transform: translateY(100%);
+}
+
+.slide-up-leave-to {
+  opacity: 0;
+  transform: translateY(-100%);
 }
 </style>

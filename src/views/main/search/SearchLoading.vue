@@ -2,13 +2,13 @@
 </script>
 
 <template>
-  <div class="article-list-loading">
+  <div class="search-loading">
     Loading...
   </div>
 </template>
 
 <style scoped lang="postcss">
-.article-list-loading {
+.search-loading {
   display: block flex;
   height: 100px;
   align-items: center;

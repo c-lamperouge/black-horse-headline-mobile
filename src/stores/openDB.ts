@@ -10,6 +10,10 @@ interface DB extends DBSchema {
     key: 'token' | 'refreshToken'
     value: string
   }
+  articleSearchHistories: {
+    key: number
+    value: string
+  }
   userInformation: {
     key: 'id' | 'name' | 'avatarUrl' | 'isWeMedia' | 'introduction' | 'certification'
       | 'articleCount' | 'followerCount' | 'fansCount' | 'likeCount'
@@ -35,6 +39,7 @@ const openAppDB = async () => {
       if (oldVersion === 0 && newVersion === 1) {
         db.createObjectStore('view')
         db.createObjectStore('authorization')
+        db.createObjectStore('articleSearchHistories', { autoIncrement: true })
         db.createObjectStore('userInformation')
       } else {
         console.error('unknown database network version change')

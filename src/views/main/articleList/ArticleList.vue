@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onBeforeMount, reactive } from 'vue'
+import { reactive } from 'vue'
 import { autoGetChannelRecommendArticles } from '@network/logic/autoGetChannelRecommendArticls'
 import type { Data } from '@network/logic/autoGetChannelRecommendArticls'
 import { match } from 'ts-pattern'
@@ -26,29 +26,28 @@ interface Article {
 }
 const articles: Array<Article> = reactive([])
 
-onBeforeMount(async () => {
-  match(await autoGetChannelRecommendArticles(props.channelId, Date.now()))
-    .with({ responseType: 'success' }, async result => {
-      const data: Data = await result.lastContent().json()
-      data.data.results.forEach(value => {
-        articles.push({
-          id: parseInt(value.art_id),
-          title: value.title,
-          authorId: parseInt(value.aut_id),
-          author: value.aut_name,
-          commentsCount: parseInt(value.comm_count),
-          publishDate: new Date(value.pubdate),
-          cover: {
-            type: value.cover.type,
-            urls: value.cover.images
-          }
-        })
+// request channel recommend articles
+match(await autoGetChannelRecommendArticles(props.channelId, Date.now()))
+  .with({ responseType: 'success' }, async result => {
+    const data: Data = await result.lastContent().json()
+    data.data.results.forEach(value => {
+      articles.push({
+        id: parseInt(value.art_id),
+        title: value.title,
+        authorId: parseInt(value.aut_id),
+        author: value.aut_name,
+        commentsCount: parseInt(value.comm_count),
+        publishDate: new Date(value.pubdate),
+        cover: {
+          type: value.cover.type,
+          urls: value.cover.images
+        }
       })
     })
-    .otherwise(result => {
-      console.log(result.responseResultQueue)
-    })
-})
+  })
+  .otherwise(result => {
+    console.log(result.responseResultQueue)
+  })
 </script>
 
 <template>

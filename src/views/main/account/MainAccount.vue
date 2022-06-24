@@ -205,7 +205,7 @@ const handleExitAccountOk = () => {
       height: 44px;
       border: none;
       appearance: none;
-      background-color: white;
+      background-color: hsl(0deg 0% 95%);
       border-radius: 22px;
       color: #666;
       font-size: 24px;
@@ -216,7 +216,7 @@ const handleExitAccountOk = () => {
       }
 
       &:active {
-        background-color: #f2f3f5;
+        background-color: hsl(0deg 0% 85%);
       }
     }
   }

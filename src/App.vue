@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import './assets/style/theme.postcss'
 import { RouterView } from 'vue-router'
 import './router/routerTransition.postcss'
 
@@ -9,7 +10,6 @@ import './router/routerTransition.postcss'
     <RouterView v-slot="{Component, route}">
       <Transition
         :name="route.meta.transition1"
-        mode="out-in"
       >
         <KeepAlive>
           <component :is="Component" />
@@ -44,7 +44,6 @@ button {
   display: block flex;
   height: 100%;
   flex-flow: column nowrap;
-  overflow-x: hidden;
 }
 </style>
 

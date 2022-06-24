@@ -28,7 +28,8 @@ export default defineConfig({
       '@components': path.resolve(__dirname, 'src/components'),
       '@stores': path.resolve(__dirname, 'src/stores'),
       '@network': path.resolve(__dirname, 'src/network'),
-      '@views': path.resolve(__dirname, 'src/views/')
+      '@views': path.resolve(__dirname, 'src/views'),
+      '@util': path.resolve(__dirname, 'src/utilities')
     }
   },
   css: {

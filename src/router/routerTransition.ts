@@ -9,7 +9,7 @@ declare module 'vue-router' {
 
 const appendTransition: NavigationHookAfter = (to, from) => {
   // level 1 transition
-  if (from.path.startsWith('/first-view') && to.path.startsWith('/login')) {
+  if (from.path.startsWith('/splash-screen') && to.path.startsWith('/login')) {
     to.meta.transition1 = 'router-slide-left'
   } else if (from.path.startsWith('/login') && to.path.startsWith('/main')) {
     to.meta.transition1 = 'router-slide-left'

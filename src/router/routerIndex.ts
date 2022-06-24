@@ -36,11 +36,15 @@ const routes: Array<RouteRecordRaw> = [
         children: [
           {
             path: '',
-            redirect: '/main/search/history'
+            redirect: '/main/search/histories'
           },
           {
-            path: 'history',
-            component: () => import('@views/main/search/SearchHistory.vue')
+            path: 'histories',
+            component: () => import('@views/main/search/SearchHistories.vue')
+          },
+          {
+            path: 'suggestions',
+            component: () => import('@views/main/search/SearchSuggestions.vue')
           }
         ]
       },

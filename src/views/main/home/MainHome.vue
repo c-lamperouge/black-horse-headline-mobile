@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { reactive, onBeforeMount, defineAsyncComponent } from 'vue'
+import { reactive, onBeforeMount } from 'vue'
 import { $ref } from 'vue/macros'
 import IconMenu from '~icons/ic/round-menu'
+import ArticleList from '@views/main/articleList/ArticleList.vue'
 import ArticleListLoading from '@views/main/articleList/ArticleListLoading.vue'
-import ArticleListError from '@views/main/articleList/ArticleListError.vue'
 import { autoGetUserChannels } from '@network/logic/autoGetUserChannels'
 import type { Data } from '@network/logic/autoGetUserChannels'
 import { match } from 'ts-pattern'
@@ -43,22 +43,10 @@ let isShowEditChannel = $ref(false)
 const showEditChannel = () => {
   isShowEditChannel = true
 }
-
-// article list component
-const ArticleList = defineAsyncComponent({
-  loader: () => import('@views/main/articleList/ArticleList.vue'),
-  loadingComponent: ArticleListLoading,
-  // Delay before showing the loading component. Default: 200ms.
-  delay: 200,
-  errorComponent: ArticleListError,
-  // The error component will be displayed if a timeout is
-  // provided and exceeded. Default: Infinity.
-  timeout: 6000
-})
 </script>
 
 <template>
-  <div class="block-container">
+  <div class="main-home">
     <nav class="channel-tab-bar">
       <div class="left">
         <div
@@ -81,7 +69,13 @@ const ArticleList = defineAsyncComponent({
       </div>
     </nav>
 
-    <ArticleList :channel-id="activeChannelId" />
+    <Suspense>
+      <ArticleList :channel-id="activeChannelId" />
+
+      <template #fallback>
+        <ArticleListLoading />
+      </template>
+    </Suspense>
 
     <EditChannel
       v-model="isShowEditChannel"
@@ -91,7 +85,7 @@ const ArticleList = defineAsyncComponent({
 </template>
 
 <style lang="postcss" scoped>
-.block-container {
+.main-home {
   display: block flex;
   width: 100%;
   height: calc(100vh - 100px);

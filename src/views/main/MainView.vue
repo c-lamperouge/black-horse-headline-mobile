@@ -23,8 +23,8 @@ const toAccount = () => {
 <template>
   <div class="main-view">
     <div class="transition-container">
-      <RouterView v-slot="{Component, route}">
-        <template v-if="Component">
+      <RouterView>
+        <template #default="{Component, route}">
           <Transition
             :name="route.meta.transition2"
           >
@@ -78,13 +78,14 @@ const toAccount = () => {
   overflow-y: hidden;
 
   & > footer {
+    z-index: 1;
     display: flex;
     width: 100%;
     height: 100px;
     align-items: center;
     justify-content: space-around;
     background-color: white;
-    box-shadow: 0 0 12px 0 rgb(0 0 0 / 50%);
+    box-shadow: 0 0 8px 0 rgb(0 0 0 / 24%);
   }
 }
 

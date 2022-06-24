@@ -41,10 +41,10 @@ const updateStoreAuthorization = async (response: Response) => {
   const refreshToken = data.data.refresh_token
 
   const db = await openAppDB()
-  const transaction = db.transaction(['authorization', 'selectPage'], 'readwrite')
+  const transaction = db.transaction(['authorization', 'view'], 'readwrite')
   transaction.objectStore('authorization').put(token, 'token')
   transaction.objectStore('authorization').put(refreshToken, 'refreshToken')
-  transaction.objectStore('selectPage').put(true, 'isLoggedIn')
+  transaction.objectStore('view').put('/main', 'viewPath')
   transaction.done.catch(e => {
     console.error(e)
   })

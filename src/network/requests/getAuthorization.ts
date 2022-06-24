@@ -14,7 +14,6 @@ type GetAuthorization = (phoneNumber: string, verificationCode: string) => Promi
 const getAuthorization: GetAuthorization = async (phoneNumber, verificationCode) => {
   const response = await fetch(`${baseURL}/v1_0/authorizations`, {
     method: 'POST',
-    mode: 'cors',
     headers: {
       'Content-Type': 'application/json;charset=utf-8'
     },

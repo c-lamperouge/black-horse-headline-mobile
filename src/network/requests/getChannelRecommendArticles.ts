@@ -26,7 +26,6 @@ type GetChannelRecommendArticles = (channelId: string, timestamp: number,) => Pr
 const getChannelRecommendArticles: GetChannelRecommendArticles = async (channelId, timestamp) => {
   const response = await fetch(`${baseURL}/v1_0/articles?channel_id=${channelId}&timestamp=${timestamp}`, {
     method: 'GET',
-    mode: 'cors',
     headers: {
       'Content-Type': 'application/json;charset=utf-8',
       Authorization: `Bearer ${await getToken()}`

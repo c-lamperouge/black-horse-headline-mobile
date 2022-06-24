@@ -8,7 +8,7 @@ import ChannelListLoading from './ChannelListLoading.vue'
 interface ComponentProperties {
   modelValue: boolean
   channels: Array<{
-    id: number
+    id: string
     name: string
   }>
 }

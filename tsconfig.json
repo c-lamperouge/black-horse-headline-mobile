@@ -36,6 +36,10 @@
       "@views/*": [
         "src/views/*.ts",
         "src/views/*.d.ts"
+      ],
+      "@util/*": [
+        "src/utilities/*.ts",
+        "src/utilities/*.d.ts"
       ]
     }
   },

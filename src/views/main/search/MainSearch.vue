@@ -111,7 +111,7 @@ const hancleSearchInput = () => {
 .main-search {
   display: block flex;
   width: 100%;
-  height: calc(100vh - 100px);
+  height: calc(100vh - 110px);
   flex-direction: column;
   justify-content: flex-start;
   background-color: white;

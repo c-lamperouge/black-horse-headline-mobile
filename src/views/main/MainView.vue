@@ -1,8 +1,8 @@
 <script setup lang="ts">
+import { useRoute, useRouter, RouterView } from 'vue-router'
 import IconHome from '~icons/ic/baseline-home'
 import IconSearch from '~icons/ic/baseline-search'
 import IconAccount from '~icons/ic/baseline-person'
-import { useRoute, useRouter, RouterView } from 'vue-router'
 
 const currentRoute = useRoute()
 const router = useRouter()
@@ -81,11 +81,11 @@ const toAccount = () => {
     z-index: 1;
     display: flex;
     width: 100%;
-    height: 100px;
+    height: 110px;
     align-items: center;
     justify-content: space-around;
     background-color: white;
-    box-shadow: 0 0 8px 0 rgb(0 0 0 / 24%);
+    box-shadow: var(--shadow-separate);
   }
 }
 
@@ -102,11 +102,11 @@ const toAccount = () => {
   }
 
   & > .icon {
-    font-size: 42px;
+    font-size: 46px;
   }
 
   & > span {
-    font-size: 24px;
+    font-size: 28px;
   }
 }
 

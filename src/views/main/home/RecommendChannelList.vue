@@ -42,7 +42,7 @@ match(requestResult)
 
       <div
         v-show="props.isEditing"
-        class="delete"
+        class="add"
       >
         <IconAdd class="icon" />
       </div>
@@ -65,7 +65,7 @@ match(requestResult)
     line-height: 80px;
     text-align: center;
 
-    & > .delete {
+    & > .add {
       position: absolute;
       top: -6px;
       right: -6px;
@@ -76,7 +76,7 @@ match(requestResult)
       justify-content: center;
       background-color: white;
       border-radius: 16px;
-      box-shadow: 0 0 8px 0 rgb(0 0 0 / 24%);
+      box-shadow: var(--shadow-separate);
 
       & > .icon {
         font-size: 16px;

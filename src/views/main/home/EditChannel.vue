@@ -1,12 +1,10 @@
 <script setup lang="ts">
-import { $computed, $ref } from 'vue/macros'
-import BodyOverlay from '@/components/BodyOverlay.vue'
+import { $ref } from 'vue/macros'
 import IconClose from '~icons/ic/baseline-close'
 import RecommendChannelList from './RecommendChannelList.vue'
 import ChannelListLoading from './ChannelListLoading.vue'
 
 interface ComponentProperties {
-  modelValue: boolean
   channels: Array<{
     id: string
     name: string
@@ -15,21 +13,12 @@ interface ComponentProperties {
 const props = defineProps<ComponentProperties>()
 
 interface ComponentEmits {
-  (e: 'update:modelValue', newValue: boolean): void
+  (e: 'close'): void
 }
 const emit = defineEmits<ComponentEmits>()
 
-let isShowOverlay = $computed<boolean>({
-  get () {
-    return props.modelValue
-  },
-  set (newValue) {
-    emit('update:modelValue', newValue)
-  }
-})
-
 const closeOverlay = () => {
-  isShowOverlay = false
+  emit('close')
 }
 
 // edit state
@@ -45,81 +34,75 @@ const cancelEdit = () => {
 </script>
 
 <template>
-  <BodyOverlay
-    v-model="isShowOverlay"
+  <div
+    class="edit-channel"
   >
-    <Transition name="slide">
-      <div
-        v-if="props.modelValue"
-        class="edit-channel"
+    <div class="row-top">
+      <span
+        v-if="!isEditing"
+        class="close"
       >
-        <div class="row-top">
-          <span
-            v-if="!isEditing"
-            class="close"
-          >
-            <IconClose
-              class="icon"
-              @click="closeOverlay"
-            />
-          </span>
+        <IconClose
+          class="icon"
+          @click="closeOverlay"
+        />
+      </span>
 
-          <button
+      <button
+        v-show="isEditing"
+        class="cancel"
+        @click="cancelEdit"
+      >
+        取消
+      </button>
+
+      <button
+        class="edit"
+        @click="switchEditState"
+      >
+        {{ isEditing ? '完成' : '编辑' }}
+      </button>
+    </div>
+
+    <section class="my-channels">
+      <h3>我的频道</h3>
+
+      <div class="channel-list">
+        <div
+          v-for="channel in props.channels"
+          :key="channel.id"
+          class="item"
+        >
+          {{ channel.name }}
+
+          <div
             v-show="isEditing"
-            class="cancel"
-            @click="cancelEdit"
+            class="delete"
           >
-            取消
-          </button>
-
-          <button
-            class="edit"
-            @click="switchEditState"
-          >
-            {{ isEditing ? '完成' : '编辑' }}
-          </button>
-        </div>
-
-        <section class="my-channels">
-          <h3>我的频道</h3>
-
-          <div class="channel-list">
-            <div
-              v-for="channel in props.channels"
-              :key="channel.id"
-              class="item"
-            >
-              {{ channel.name }}
-
-              <div
-                v-show="isEditing"
-                class="delete"
-              >
-                <IconClose class="icon" />
-              </div>
-            </div>
+            <IconClose class="icon" />
           </div>
-        </section>
-
-        <section class="recommend-channels">
-          <h3>频道推荐</h3>
-
-          <Suspense>
-            <RecommendChannelList :is-editing="isEditing" />
-
-            <template #fallback>
-              <ChannelListLoading />
-            </template>
-          </Suspense>
-        </section>
+        </div>
       </div>
-    </Transition>
-  </BodyOverlay>
+    </section>
+
+    <section class="recommend-channels">
+      <h3>频道推荐</h3>
+
+      <Suspense>
+        <RecommendChannelList :is-editing="isEditing" />
+
+        <template #fallback>
+          <ChannelListLoading />
+        </template>
+      </Suspense>
+    </section>
+  </div>
 </template>
 
 <style scoped lang="postcss">
 .edit-channel {
   position: fixed;
+  z-index: 11;
   top: 0;
   left: 0;
   display: block flex;
@@ -247,29 +230,12 @@ const cancelEdit = () => {
       justify-content: center;
       background-color: white;
       border-radius: 16px;
-      box-shadow: 0 0 8px 0 rgb(0 0 0 / 24%);
+      box-shadow: var(--shadow-separate);
 
       & > .icon {
         font-size: 16px;
       }
     }
   }
-}
-
-/* vue transition class */
-.slide-enter-active {
-  transition: transform 0.25s ease-out 0s;
-}
-
-.slide-leave-active {
-  transition: transform 0.25s ease-in 0s;
-}
-
-.slide-enter-from {
-  transform: translateY(100%);
-}
-
-.slide-leave-to {
-  transform: translateY(100%);
 }
 </style>

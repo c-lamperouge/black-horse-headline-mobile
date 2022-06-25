@@ -44,10 +44,6 @@ const handleExitAccountButtonClick = () => {
   isShowOverlay = true
 }
 
-const handleExitAccountCancel = () => {
-  isShowOverlay = false
-}
-
 const handleExitAccountOk = () => {
   isShowOverlay = false
 }
@@ -134,15 +130,13 @@ const handleExitAccountOk = () => {
 
     <BodyOverlay
       v-model="isShowOverlay"
-      :enable-click-cancel="true"
+      backdrop-theme="light"
+      slot-transition-name="scale"
     >
-      <template #default="{isShow}">
-        <ExitAccount
-          :is-show="isShow"
-          @cancel="handleExitAccountCancel"
-          @ok="handleExitAccountOk"
-        />
-      </template>
+      <ExitAccount
+        @close="isShowOverlay = false"
+        @ok="handleExitAccountOk"
+      />
     </BodyOverlay>
   </div>
 </template>
@@ -151,7 +145,7 @@ const handleExitAccountOk = () => {
 .main-account {
   display: block flex;
   width: 100%;
-  height: calc(100vh - 100px);
+  height: calc(100vh - 110px);
   flex-direction: column;
   justify-content: flex-start;
   background-color: #f5f7f9;
@@ -350,5 +344,24 @@ const handleExitAccountOk = () => {
   &:active {
     background-color: #f2f3f5;
   }
+}
+
+/* vue transition class */
+.scale-enter-active {
+  transition: transform 0.25s ease-out 0s, opacity 0.25s linear 0s;
+}
+
+.scale-leave-active {
+  transition: transform 0.25s ease-in 0s, opacity 0.25s linear 0s;
+}
+
+.scale-enter-from {
+  opacity: 0;
+  transform: scale(0.75);
+}
+
+.scale-leave-to {
+  opacity: 0;
+  transform: scale(0.75);
 }
 </style>

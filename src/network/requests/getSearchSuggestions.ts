@@ -15,13 +15,16 @@ const getSearchSuggestions: GetSearchSuggestions = async (keyword) => {
   url.searchParams.set('q', keyword)
 
   const response = await fetch(url, {
-    method: 'GET'
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json;charset=utf-8'
+    }
   })
 
   if (response.ok) {
-    return new ResponseResult('getSearchArticle', 'success', response)
+    return new ResponseResult('getSearchSuggestions', 'success', response)
   } else {
-    return new ResponseResult('getSearchArticle', 'failure', response)
+    return new ResponseResult('getSearchSuggestions', 'failure', response)
   }
 }
 

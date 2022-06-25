@@ -16,13 +16,16 @@ type GetRecommendChannels = () => Promise<ResponseResult>
 const getRecommendChannels: GetRecommendChannels = async () => {
   const response = await fetch(`${baseURL}/v1_0/channels`, {
     method: 'GET',
-    mode: 'cors'
+    mode: 'cors',
+    headers: {
+      'Content-Type': 'application/json;charset=utf-8'
+    }
   })
 
   if (response.ok) {
-    return new ResponseResult('getUserChannels', 'success', response)
+    return new ResponseResult('getRecommendChannels', 'success', response)
   } else {
-    return new ResponseResult('getUserChannels', 'failure', response)
+    return new ResponseResult('getRecommendChannels', 'failure', response)
   }
 }
 

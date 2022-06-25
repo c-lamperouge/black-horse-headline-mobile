@@ -3,8 +3,11 @@ import { computed } from 'vue'
 
 interface ComponentProperties {
   modelValue: boolean
-  enableClickCancel?: boolean
-  background?: 'translucent' | 'transparent'
+  enableClose?: boolean
+  backdropTheme?: 'transparent' | 'light' | 'dark'
+  backdropTransitionName?: string | undefined
+  slotTransitionName?: string | undefined,
+  transitionDuration?: string
 }
 
 interface ComponentEmits {
@@ -12,22 +15,20 @@ interface ComponentEmits {
 }
 
 // eslint-disable-next-line vue/no-setup-props-destructure
-const { modelValue, enableClickCancel = false, background = 'translucent' } = defineProps<ComponentProperties>()
+const {
+  modelValue,
+  enableClose = true,
+  backdropTheme = 'dark',
+  backdropTransitionName = 'fade',
+  slotTransitionName = undefined,
+  transitionDuration = '250ms'
+} = defineProps<ComponentProperties>()
 const emit = defineEmits<ComponentEmits>()
 
-const backdropClass = computed<string>(() => {
-  switch (background) {
-    case 'translucent':
-      return '-bg-translucent'
-    case 'transparent':
-      return '-bg-transparent'
-    default:
-      return '-bg-translucent'
-  }
-})
+const backdropClass = computed<string>(() => `-bg-${backdropTheme}`)
 
 const handleBackdropClick = () => {
-  if (enableClickCancel) {
+  if (enableClose) {
     emit('update:modelValue', false)
   }
 }
@@ -35,43 +36,55 @@ const handleBackdropClick = () => {
 
 <template>
   <Teleport to="body">
-    <Transition name="fade">
+    <Transition :name="backdropTransitionName">
       <div
         v-if="modelValue"
         class="overlay-backdrop"
         :class="backdropClass"
+        :style="{'--transition-duration': transitionDuration}"
         @click="handleBackdropClick"
       />
     </Transition>
 
-    <slot :is-show="modelValue" />
+    <Transition :name="slotTransitionName">
+      <slot v-if="modelValue" />
+    </Transition>
   </Teleport>
 </template>
 
 <style scoped lang="postcss">
 .overlay-backdrop {
   position: fixed;
+  z-index: 10;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
-
-  &.-bg-translucent {
-    background-color: rgb(0 0 0 / 40%);
-  }
+  width: 100vw;
+  height: 100vh;
 
   &.-bg-transparent {
     background-color: transparent;
+  }
+
+  &.-bg-light {
+    background-color: rgb(255 255 255 / 80%);
+  }
+
+  &.-bg-dark {
+    background-color: rgb(0 0 0 / 50%);
   }
 }
 
 /* vue transition class */
 .fade-enter-active {
-  transition: opacity 0.25s linear 0s;
+  transition-duration: var(--transition-duration);
+  transition-property: opacity;
+  transition-timing-function: linear;
 }
 
 .fade-leave-active {
-  transition: opacity 0.25s linear 0s;
+  transition-duration: var(--transition-duration);
+  transition-property: opacity;
+  transition-timing-function: linear;
 }
 
 .fade-enter-from {

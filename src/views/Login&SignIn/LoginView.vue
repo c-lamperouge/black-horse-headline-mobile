@@ -7,7 +7,7 @@ import { match } from 'ts-pattern'
 import IconLock from '~icons/ic/baseline-lock'
 import IconPhone from '~icons/ic/baseline-phone-iphone'
 import BodyOverlay from '@components/BodyOverlay.vue'
-import TheLoadingSlot from './TheLoadingSlot.vue'
+import SlotLoading from '@components/OverlaySlotLoading.vue'
 import ThePhoneNumberInvalidSlot from './ThePhoneNumberInvalidSlot.vue'
 import TheVerificationCodeInvalid from './TheVerificationCodeInvalidSlot.vue'
 import TheSendVerificationSuccessfullySlot from './TheSendVerificationSuccessfullySlot.vue'
@@ -53,7 +53,7 @@ let currentOverlaySlot = $ref(OverlaySlotComponent.Loading)
 const overlaySlotComponent = computed(() => {
   switch (currentOverlaySlot) {
     case OverlaySlotComponent.Loading:
-      return TheLoadingSlot
+      return SlotLoading
     case OverlaySlotComponent.PhoneNumberInvalid:
       return ThePhoneNumberInvalidSlot
     case OverlaySlotComponent.VerificationCodeInvalid:
@@ -61,7 +61,7 @@ const overlaySlotComponent = computed(() => {
     case OverlaySlotComponent.SendVerificationSuccessfully:
       return TheSendVerificationSuccessfullySlot
     default:
-      return TheLoadingSlot
+      return SlotLoading
   }
 })
 
@@ -222,10 +222,13 @@ const updateStoreUserInformation = async (data: Data) => {
 
     <BodyOverlay
       v-model="isShowOverlay"
+      backdrop-theme="light"
+      slot-transition-name="scale"
+      :enable-close="false"
     >
       <component
         :is="overlaySlotComponent"
-        v-model="isShowOverlay"
+        @close="isShowOverlay = false"
       />
     </BodyOverlay>
   </div>
@@ -361,21 +364,21 @@ const updateStoreUserInformation = async (data: Data) => {
   font-size: 26px;
 }
 
-.slide-up-enter-active {
-  transition: transform 0.25s ease-out 0s;
+.scale-enter-active {
+  transition: transform 0.25s ease-out 0s, opacity 0.25s linear 0s;
 }
 
-.slide-up-leave-active {
-  transition: transform 0.25s ease-out 0s;
+.scale-leave-active {
+  transition: transform 0.25s ease-in 0s, opacity 0.25s linear 0s;
 }
 
-.slide-up-enter-from {
+.scale-enter-from {
   opacity: 0;
-  transform: translateY(100%);
+  transform: scale(0.75);
 }
 
-.slide-up-leave-to {
+.scale-leave-to {
   opacity: 0;
-  transform: translateY(-100%);
+  transform: scale(0.75);
 }
 </style>

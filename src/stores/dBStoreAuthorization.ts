@@ -16,6 +16,16 @@ const getToken = async () => {
   return token
 }
 
+const updateToken = async (newToken: string) => {
+  const db = await openAppDB()
+  const transaction = db.transaction('authorization', 'readwrite')
+  transaction.store.put(newToken, 'token')
+  transaction.done.catch(reason => {
+    console.error(reason)
+  })
+  db.close()
+}
+
 const getRefreshToken = async () => {
   const db = await openAppDB()
   const transaction = db.transaction('authorization')
@@ -34,5 +44,6 @@ const getRefreshToken = async () => {
 
 export {
   getToken,
+  updateToken,
   getRefreshToken
 }

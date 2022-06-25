@@ -1,8 +1,20 @@
 <script setup lang="ts">
 import './assets/style/theme.postcss'
-import { RouterView } from 'vue-router'
+import { useRouter, RouterView } from 'vue-router'
 import './router/routerTransition.postcss'
+import { useStore } from '@stores/loading'
+import BodyOverlay from '@components/BodyOverlay.vue'
+import SlotLoading from '@components/OverlaySlotLoading.vue'
 
+const loadingStore = useStore()
+// on routing hint for slow network
+const router = useRouter()
+router.beforeEach(() => {
+  loadingStore.isLoading = true
+})
+router.afterEach(() => {
+  loadingStore.isLoading = false
+})
 </script>
 
 <template>
@@ -17,6 +29,15 @@ import './router/routerTransition.postcss'
       </Transition>
     </RouterView>
   </div>
+
+  <BodyOverlay
+    v-model="loadingStore.isLoading"
+    backdrop-theme="light"
+    :enable-close="false"
+    slot-transition-name="fade"
+  >
+    <SlotLoading />
+  </BodyOverlay>
 </template>
 
 <style lang="postcss">
@@ -54,5 +75,22 @@ button {
   flex: 1;
   overflow-x: hidden;
   overflow-y: auto;
+}
+
+/* vue transition class */
+.fade-enter-active {
+  transition: opacity 0.25s linear 0s;
+}
+
+.fade-leave-active {
+  transition: opacity 0.25s linear 0s;
+}
+
+.fade-enter-from {
+  opacity: 0;
+}
+
+.fade-leave-to {
+  opacity: 0;
 }
 </style>

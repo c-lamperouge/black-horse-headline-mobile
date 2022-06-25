@@ -1,73 +1,51 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
 
-interface ComponentProperties {
-  modelValue: boolean
-}
-
 interface ComponentEmits {
-  (e: 'update:modelValue', value: boolean): void
+  (e: 'close'): void
 }
-
-const props = defineProps<ComponentProperties>()
 const emit = defineEmits<ComponentEmits>()
+
+const handleSlotClick = () => {
+  emit('close')
+}
 
 onMounted(() => {
   setTimeout(() => {
-    if (props.modelValue) {
-      emit('update:modelValue', false)
-    }
-  }, 1500)
+    emit('close')
+  }, 3000)
 })
-
-const handleSlotClick = () => {
-  emit('update:modelValue', false)
-}
 </script>
 
 <template>
-  <Transition name="fade">
-    <div
-      v-if="props.modelValue"
-      class="slot-container"
-      @click="handleSlotClick"
-    >
-      <p>验证码已发送，注意查收</p>
-    </div>
-  </Transition>
+  <div
+    class="slot-container"
+    @click="handleSlotClick"
+  >
+    <p>验证码已发送，注意查收</p>
+  </div>
 </template>
 
 <style scoped lang="postcss">
 .slot-container {
   position: fixed;
-  top: 50%;
-  left: 50%;
-  width: 375px;
-  background-color: rgb(0 0 0 / 70%);
-  border-radius: 8px;
-  color: #eee;
-  transform: translate(-50%, -50%);
+  z-index: 11;
+  top: calc(50% - 120px);
+  left: calc(50% - 210px);
+  display: block flex;
+  width: 420px;
+  height: 240px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: var(--shadow-dialog);
 
   & > p {
     margin-block: 1em;
     margin-inline: 1em;
   }
-}
-
-/* vue transition class */
-.fade-enter-active {
-  transition: opacity 0.25s linear 0s;
-}
-
-.fade-leave-active {
-  transition: opacity 0.25s linear 0s;
-}
-
-.fade-enter-from {
-  opacity: 0;
-}
-
-.fade-leave-to {
-  opacity: 0;
 }
 </style>

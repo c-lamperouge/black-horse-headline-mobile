@@ -1,6 +1,7 @@
 import { match } from 'ts-pattern'
-import { getRefreshToken } from '@stores/dBStoreAuthorization'
+import { getRefreshToken, updateToken as dbUpdateToken } from '@stores/dBStoreAuthorization'
 import { updateToken } from '@network/requests/updateToken'
+import type { Data } from '@network/requests/updateToken'
 import { MultipleResponseResult, ResponseResult } from '@network/ResponseResult'
 
 type RequestFunction = (...args: any[]) => Promise<ResponseResult>
@@ -41,9 +42,13 @@ const retryAfterRefreshToken: RetryAfterRefreshToken = async (multipleResponseRe
   const refreshToken = await getRefreshToken()
 
   return match(await updateToken(refreshToken))
-    .with({ responseType: 'success' }, result => {
+    .with({ responseType: 'success' }, async result => {
       multipleResponseResult.enqueue(result)
       multipleResponseResult.succeed()
+      // update indexdb token
+      const data: Data = await result.responseContent.json()
+      dbUpdateToken(data.data.token)
+
       return multipleResponseResult
     })
     .otherwise(result => {

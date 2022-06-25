@@ -7,6 +7,7 @@ import ArticleListLoading from '@views/main/articleList/ArticleListLoading.vue'
 import { autoGetUserChannels } from '@network/logic/autoGetUserChannels'
 import type { Data } from '@network/logic/autoGetUserChannels'
 import { match } from 'ts-pattern'
+import BodyOverlay from '@/components/BodyOverlay.vue'
 import EditChannel from '@views/main/home/EditChannel.vue'
 
 // about channel tab bar element
@@ -77,10 +78,15 @@ const showEditChannel = () => {
       </template>
     </Suspense>
 
-    <EditChannel
+    <BodyOverlay
       v-model="isShowEditChannel"
-      :channels="channels"
-    />
+      slot-transition-name="slide"
+    >
+      <EditChannel
+        :channels="channels"
+        @close="isShowEditChannel = false"
+      />
+    </BodyOverlay>
   </div>
 </template>
 
@@ -88,7 +94,7 @@ const showEditChannel = () => {
 .main-home {
   display: block flex;
   width: 100%;
-  height: calc(100vh - 100px);
+  height: calc(100vh - 110px);
   flex-direction: column;
   justify-content: flex-start;
   background-color: white;
@@ -166,5 +172,22 @@ const showEditChannel = () => {
       font-size: 32px;
     }
   }
+}
+
+/* vue transition class */
+.slide-enter-active {
+  transition: transform 0.25s ease-out 0s;
+}
+
+.slide-leave-active {
+  transition: transform 0.25s ease-in 0s;
+}
+
+.slide-enter-from {
+  transform: translateY(100%);
+}
+
+.slide-leave-to {
+  transform: translateY(100%);
 }
 </style>

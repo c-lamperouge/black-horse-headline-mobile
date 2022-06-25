@@ -68,6 +68,8 @@ const router = createRouter({
   history: createWebHistory(),
   routes
 })
+
+// router switch transition
 router.afterEach(appendTransition)
 
 export default router

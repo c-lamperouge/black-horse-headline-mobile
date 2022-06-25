@@ -27,12 +27,13 @@ const handleSearchFocus = () => {
 }
 const handleSearchBlur = () => {
   isSearching = false
-  articleSearchStore.searchValue = ''
 }
 
 const handleClearMouseDown = () => {
   articleSearchStore.searchValue = ''
   router.push('/main/search/histories')
+  search?.blur()
+  isSearching = false
 }
 
 // logic
@@ -56,6 +57,7 @@ const hancleSearchInput = () => {
           v-model="articleSearchStore.searchValue"
           type="text"
           class="edit"
+          :class="{'-transparent': !isSearching}"
           @focus="handleSearchFocus"
           @blur="handleSearchBlur"
           @input="hancleSearchInput"
@@ -93,15 +95,13 @@ const hancleSearchInput = () => {
 
     <RouterView>
       <template #default="{Component}">
-        <KeepAlive>
-          <Suspense v-if="Component">
-            <component :is="Component" />
+        <Suspense v-if="Component">
+          <component :is="Component" />
 
-            <template #fallback>
-              <SearchLoading />
-            </template>
-          </Suspense>
-        </KeepAlive>
+          <template #fallback>
+            <SearchLoading />
+          </template>
+        </Suspense>
       </template>
     </RouterView>
   </div>
@@ -146,9 +146,14 @@ const hancleSearchInput = () => {
       background-color: transparent;
       color: white;
       font-size: 30px;
+      transition: color 0.25s linear 0s;
 
       &:focus {
         outline: none;
+      }
+
+      &.-transparent {
+        color: transparent;
       }
     }
 

@@ -4,6 +4,7 @@ import IconDelete from '~icons/ic/baseline-delete'
 import IconCheck from '~icons/ic/baseline-check'
 import IconClose from '~icons/ic/baseline-close'
 import { useStore } from '@stores/articleSearch'
+import { useRouter } from 'vue-router'
 
 // store
 const articleSearchStore = useStore()
@@ -15,16 +16,26 @@ try {
 
 // delete history
 let isDeleting = $ref(false)
-
-const enterDeletingState = () => {
-  isDeleting = true
+const handleDeleteIconClick = () => {
+  if (isDeleting) {
+    articleSearchStore.clearHistories()
+    isDeleting = false
+  } else {
+    isDeleting = true
+  }
 }
-
 const finishDeleting = () => {
   isDeleting = false
 }
 
+const router = useRouter()
+const handleHistoryItemClick = (historyContent: string) => {
+  articleSearchStore.searchValue = historyContent
+  router.push('/main/search/result')
+}
+
 const deleteHistory = (index: number) => {
+  console.log(`delete index ${index}`)
   articleSearchStore.deleteHistory(index)
 }
 </script>
@@ -37,7 +48,7 @@ const deleteHistory = (index: number) => {
       <div class="right">
         <div
           class="delete1"
-          @click="enterDeletingState"
+          @click="handleDeleteIconClick"
         >
           <IconDelete class="icon1" />
         </div>
@@ -59,15 +70,16 @@ const deleteHistory = (index: number) => {
     >
       <li
         v-for="(history, index) in articleSearchStore.histories"
-        :key="history.id"
+        :key="history.timeStamp"
         class="item"
+        @click="handleHistoryItemClick(history.content)"
       >
         <span>{{ history.content }}</span>
 
         <div
           v-show="isDeleting"
           class="delete2"
-          @click="deleteHistory(index)"
+          @click.stop="deleteHistory(index)"
         >
           <IconClose class="icon3" />
         </div>

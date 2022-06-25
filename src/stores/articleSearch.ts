@@ -1,12 +1,12 @@
 import { defineStore } from 'pinia'
-import { getHistories } from '@stores/dBStoreArticleSearch'
+import {
+  getHistories as dbGetHistories, addHistory as dbAddHistory,
+  deleteHistory as dbDeleteHistory, clearHistories as dbClearHistories
+} from '@stores/dBStoreArticleSearch'
+import type { History } from '@stores/dBStoreArticleSearch'
 
 type Id = 'articleSearch'
 
-interface History {
-  id: number
-  content: string
-}
 interface State {
   searchValue: string
   histories: Array<History>
@@ -14,9 +14,9 @@ interface State {
 
 interface Acttions {
   loadHistories(): Promise<void>
-  addHistory(history: History): void
-  deleteHistory(index: number): void
-  emptyHistories(): void
+  addHistory(content: string): Promise<void>
+  deleteHistory(index: number): Promise<void>
+  clearHistories(): Promise<void>
 }
 
 const useStore = defineStore<Id, State, {}, Acttions>('articleSearch', {
@@ -27,27 +27,33 @@ const useStore = defineStore<Id, State, {}, Acttions>('articleSearch', {
 
   actions: {
     async loadHistories () {
-      this.emptyHistories()
-
-      const temp = await getHistories()
-      temp.forEach(value => {
-        this.histories.push({
-          id: Date.now(),
-          content: value
-        })
-      })
+      const temp = await dbGetHistories()
+      this.histories.splice(0, this.histories.length, ...temp)
     },
 
-    addHistory (history) {
-      this.histories.push(history)
+    async addHistory (content: string) {
+      if (this.histories.find(item => item.content === content) === undefined) {
+        const newHistory = {
+          content,
+          timeStamp: Date.now(),
+          author: 'anonymous'
+        }
+        this.histories.push(newHistory)
+        await dbAddHistory(newHistory)
+      }
     },
 
-    deleteHistory (index) {
+    async deleteHistory (index) {
+      // ahead preserve key for db delete
+      const key = this.histories[index].content
+      // should update pinia first, then async update db
       this.histories.splice(index, 1)
+      await dbDeleteHistory(key)
     },
 
-    emptyHistories () {
+    async clearHistories () {
       this.histories.splice(0, this.histories.length)
+      await dbClearHistories()
     }
   }
 })

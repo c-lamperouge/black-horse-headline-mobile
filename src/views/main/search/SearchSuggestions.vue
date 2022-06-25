@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { reactive, watchEffect, onDeactivated } from 'vue'
 import { useStore } from '@stores/articleSearch'
+import { useRouter } from 'vue-router'
 import { getSearchSuggestions } from '@network/requests/getSearchSuggestions'
 import type { Data } from '@network/requests/getSearchSuggestions'
 import { match } from 'ts-pattern'
 import { debounce } from '@util/debounce'
+import IconLabel from '~icons/ic/round-label'
 
 // store
 const articleSearchStore = useStore()
@@ -40,23 +42,63 @@ watchEffect(() => {
 onDeactivated(() => {
   suggestions.splice(0, suggestions.length)
 })
+
+// highlight keyword
+const suggestion2SpanList = (s: string) => {
+  const keyword = articleSearchStore.searchValue
+
+  const spanList: Array<{
+    className: string
+    content: string
+  }> = []
+  s.split(keyword).forEach(item => {
+    spanList.push({
+      className: 'normal',
+      content: item
+    })
+    spanList.push({
+      className: 'highlight',
+      content: keyword
+    })
+  })
+  spanList.pop()
+
+  return spanList
+}
+
+// event handle
+const router = useRouter()
+const handleSuggestionClick = (suggestion: string) => {
+  articleSearchStore.searchValue = suggestion
+  router.push('/main/search/result')
+  try {
+    articleSearchStore.addHistory(suggestion)
+  } catch (e) {
+    console.error(e)
+  }
+}
 </script>
 
 <template>
   <div class="search-suggestions">
-    <TransitionGroup
-      name="list"
-      tag="ul"
+    <ul
       class="suggestion-list"
     >
       <li
         v-for="(suggestion, index) in suggestions"
         :key="index"
         class="item"
+        @click="handleSuggestionClick(suggestion)"
       >
-        {{ suggestion }}
+        <IconLabel class="icon" />
+
+        <span
+          v-for="(span, index2) in suggestion2SpanList(suggestion)"
+          :key="index2"
+          :class="span.className"
+        >{{ span.content }}</span>
       </li>
-    </TransitionGroup>
+    </ul>
   </div>
 </template>
 
@@ -81,12 +123,32 @@ onDeactivated(() => {
     box-sizing: border-box;
     flex: 0 0 80px;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-start;
     padding-right: 22px;
     padding-left: 22px;
-    border-bottom: 2px solid #aaa;
+    border-bottom: 2px solid hsl(0deg 0% 90%);
     background-color: white;
     border-radius: 6px;
+    transition: background-color 0.25s linear 0s;
+
+    &:active {
+      background-color: hsl(var(--theme-hue) 40% 95%);
+    }
+
+    & > .icon {
+      margin-right: 16px;
+      color: hsl(var(--theme-hue) 40% 90%);
+      font-size: 36px;
+    }
+
+    & > .normal {
+      font-size: 32px;
+    }
+
+    & > .highlight {
+      color: var(--theme-color);
+      font-size: 32px;
+    }
   }
 }
 </style>

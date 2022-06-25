@@ -1,6 +1,12 @@
 import { openDB, DBSchema } from 'idb'
 import type { ViewPath } from '@views/viewPath'
 
+interface ArticleSearchHistory {
+  content: string
+  timeStamp: number
+  author: 'anonymous' | string
+}
+
 interface DB extends DBSchema {
   view: {
     key: 'viewPath'
@@ -11,8 +17,8 @@ interface DB extends DBSchema {
     value: string
   }
   articleSearchHistories: {
-    key: number
-    value: string
+    key: string
+    value: ArticleSearchHistory
   }
   userInformation: {
     key: 'id' | 'name' | 'avatarUrl' | 'isWeMedia' | 'introduction' | 'certification'
@@ -39,7 +45,7 @@ const openAppDB = async () => {
       if (oldVersion === 0 && newVersion === 1) {
         db.createObjectStore('view')
         db.createObjectStore('authorization')
-        db.createObjectStore('articleSearchHistories', { autoIncrement: true })
+        db.createObjectStore('articleSearchHistories', { keyPath: 'content' })
         db.createObjectStore('userInformation')
       } else {
         console.error('unknown database network version change')
@@ -56,4 +62,8 @@ const openAppDB = async () => {
 
 export {
   openAppDB
+}
+
+export type {
+  ArticleSearchHistory
 }

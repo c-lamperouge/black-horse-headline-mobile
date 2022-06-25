@@ -27,15 +27,16 @@ interface Data {
 type GetSearchArticle = (keyword: string, page?: number, eachPage?: number) => Promise<ResponseResult>
 
 const getSearchArticle: GetSearchArticle = async (keyword, page?, eachPage?) => {
-  let query = `?q=${keyword}`
+  const url = new URL(`${baseURL}/v1_0/search`)
+  url.searchParams.set('q', keyword)
   if (page !== undefined) {
-    query += `&page=${page}`
+    url.searchParams.set('page', page.toString())
   }
   if (eachPage !== undefined) {
-    query += `&per_page=${eachPage}`
+    url.searchParams.set('per_page', eachPage.toString())
   }
 
-  const response = await fetch(`${baseURL}/v1_0/search${query}`, {
+  const response = await fetch(url, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json;charset=utf-8'

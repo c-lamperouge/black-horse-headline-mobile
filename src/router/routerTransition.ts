@@ -4,6 +4,7 @@ declare module 'vue-router' {
   interface RouteMeta {
     transition1: string
     transition2: string
+    transition3: string | undefined
   }
 }
 
@@ -15,21 +16,6 @@ const appendTransition: NavigationHookAfter = (to, from) => {
     to.meta.transition1 = 'router-slide-left'
   } else if (from.path.startsWith('/main') && to.path.startsWith('/login')) {
     to.meta.transition1 = 'router-slide-right'
-  }
-
-  // level 2 main transition
-  if (from.path.startsWith('/main/home') && to.path.startsWith('/main/search')) {
-    to.meta.transition2 = 'router-slide-left'
-  } else if (from.path.startsWith('/main/home') && to.path.startsWith('/main/account')) {
-    to.meta.transition2 = 'router-slide-left'
-  } else if (from.path.startsWith('/main/search') && to.path.startsWith('/main/account')) {
-    to.meta.transition2 = 'router-slide-left'
-  } else if (from.path.startsWith('/main/account') && to.path.startsWith('/main/search')) {
-    to.meta.transition2 = 'router-slide-right'
-  } else if (from.path.startsWith('/main/account') && to.path.startsWith('/main/home')) {
-    to.meta.transition2 = 'router-slide-right'
-  } else if (from.path.startsWith('/main/search') && to.path.startsWith('/main/home')) {
-    to.meta.transition2 = 'router-slide-right'
   }
 }
 

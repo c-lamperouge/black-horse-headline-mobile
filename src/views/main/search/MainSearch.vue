@@ -3,7 +3,6 @@ import { $ref } from 'vue/macros'
 import IconSearch from '~icons/ic/baseline-search'
 import IconClose from '~icons/ic/baseline-close'
 import { RouterView, useRouter } from 'vue-router'
-import SearchLoading from '@views/main/search/SearchLoading.vue'
 import { useStore } from '@stores/articleSearch'
 
 // router
@@ -102,10 +101,6 @@ const hancleSearchInput = () => {
             v-if="Component"
           >
             <component :is="Component" />
-
-            <template #fallback>
-              <SearchLoading />
-            </template>
           </Suspense>
         </Transition>
       </template>
@@ -121,7 +116,6 @@ const hancleSearchInput = () => {
   flex-direction: column;
   justify-content: flex-start;
   background-color: white;
-  box-shadow: 0 0 12px rgb(0 0 0 / 50%);
 }
 
 .header-search {

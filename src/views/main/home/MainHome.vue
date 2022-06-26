@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { reactive, onBeforeMount } from 'vue'
+import { reactive } from 'vue'
 import { $ref } from 'vue/macros'
 import IconMenu from '~icons/ic/round-menu'
 import ArticleList from '@views/main/articleList/ArticleList.vue'
@@ -18,23 +18,21 @@ interface Channel {
 const channels: Array<Channel> = reactive([])
 let activeChannelId = $ref<string>('0')
 
-onBeforeMount(async () => {
-  match(await autoGetUserChannels())
-    .with({ responseType: 'success' }, async result => {
-      const data: Data = await result.lastContent().json()
-      data.data.channels.forEach(channel => {
-        channels.push({
-          id: channel.id.toString(),
-          name: channel.name
-        })
+match(await autoGetUserChannels())
+  .with({ responseType: 'success' }, async result => {
+    const data: Data = await result.lastContent().json()
+    data.data.channels.forEach(channel => {
+      channels.push({
+        id: channel.id.toString(),
+        name: channel.name
       })
+    })
 
-      activeChannelId = data.data.channels[0].id.toString()
-    })
-    .otherwise(result => {
-      console.log(result.responseResultQueue)
-    })
-})
+    activeChannelId = data.data.channels[0].id.toString()
+  })
+  .otherwise(result => {
+    console.log(result.responseResultQueue)
+  })
 
 const handleChannelClick = (channel: Channel) => {
   activeChannelId = channel.id
@@ -48,34 +46,38 @@ const showEditChannel = () => {
 
 <template>
   <div class="main-home">
-    <nav class="channel-tab-bar">
-      <div class="left">
-        <div
-          v-for="channel in channels"
-          :key="channel.id"
-          class="item"
-          :class="{'-active': activeChannelId === channel.id}"
-          @click="handleChannelClick(channel)"
-        >
-          <span class="title">{{ channel.name }}</span>
-        </div>
-      </div>
-
-      <div
-        v-if="channels.length >= 4"
-        class="menu"
-        @click="showEditChannel"
-      >
-        <IconMenu class="icon1" />
-      </div>
-    </nav>
-
     <Suspense>
-      <ArticleList :channel-id="activeChannelId" />
+      <div class="suspense-container">
+        <nav class="channel-tab-bar">
+          <div class="left">
+            <div
+              v-for="channel in channels"
+              :key="channel.id"
+              class="item"
+              :class="{'-active': activeChannelId === channel.id}"
+              @click="handleChannelClick(channel)"
+            >
+              <span class="title">{{ channel.name }}</span>
+            </div>
+          </div>
 
-      <template #fallback>
-        <ArticleListLoading />
-      </template>
+          <div
+            v-if="channels.length >= 4"
+            class="menu"
+            @click="showEditChannel"
+          >
+            <IconMenu class="icon1" />
+          </div>
+        </nav>
+
+        <Suspense>
+          <ArticleList :channel-id="activeChannelId" />
+
+          <template #fallback>
+            <ArticleListLoading />
+          </template>
+        </Suspense>
+      </div>
     </Suspense>
 
     <BodyOverlay
@@ -96,9 +98,13 @@ const showEditChannel = () => {
   width: 100%;
   height: calc(100vh - 110px);
   flex-direction: column;
-  justify-content: flex-start;
   background-color: white;
-  box-shadow: 0 0 12px rgb(0 0 0 / 50%);
+}
+
+.suspense-container {
+  display: block flex;
+  flex: 1;
+  flex-direction: column;
   overflow-y: auto;
 }
 

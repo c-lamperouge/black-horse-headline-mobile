@@ -149,7 +149,6 @@ const handleExitAccountOk = () => {
   flex-direction: column;
   justify-content: flex-start;
   background-color: #f5f7f9;
-  box-shadow: 0 0 12px rgb(0 0 0 / 50%);
 }
 
 .base-information {

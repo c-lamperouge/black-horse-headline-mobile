@@ -24,7 +24,7 @@ router.afterEach(() => {
 </script>
 
 <template>
-  <div class="transition-container">
+  <div class="app-transition-container">
     <RouterView>
       <template #default="{Component, route}">
         <Transition
@@ -68,19 +68,16 @@ button {
 }
 
 #app {
-  display: block flex;
   height: 100%;
-  flex-flow: column nowrap;
 }
 </style>
 
 <style scoped lang="postcss">
-.transition-container {
+.app-transition-container {
   position: relative;
   width: 100%;
-  flex: 1;
+  height: 100%;
   overflow-x: hidden;
-  overflow-y: auto;
 }
 
 /* vue transition class */

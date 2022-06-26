@@ -245,6 +245,7 @@ const updateStoreUserInformation = async (data: Data) => {
   justify-content: flex-start;
   padding: 30px;
   background-color: white;
+  box-shadow: var(--shadow-layer);
 }
 
 .login-heading {

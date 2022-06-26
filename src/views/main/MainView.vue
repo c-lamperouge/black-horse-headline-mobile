@@ -22,16 +22,14 @@ const toAccount = () => {
 
 <template>
   <div class="main-view">
-    <div class="transition-container">
+    <div class="main-transition-container">
       <RouterView>
-        <template #default="{Component, route}">
-          <Transition
-            :name="route.meta.transition2"
-          >
-            <KeepAlive>
+        <template #default="{Component}">
+          <KeepAlive>
+            <Suspense v-if="Component">
               <component :is="Component" />
-            </KeepAlive>
-          </Transition>
+            </Suspense>
+          </KeepAlive>
         </template>
       </RouterView>
     </div>
@@ -73,9 +71,9 @@ const toAccount = () => {
 <style lang="postcss" scoped>
 .main-view {
   display: block flex;
-  flex: 1;
+  height: 100%;
   flex-direction: column;
-  overflow-y: hidden;
+  box-shadow: var(--shadow-layer);
 
   & > footer {
     z-index: 1;
@@ -110,11 +108,9 @@ const toAccount = () => {
   }
 }
 
-.transition-container {
+.main-transition-container {
   position: relative;
   width: 100%;
   flex: 1;
-  overflow-x: hidden;
-  overflow-y: auto;
 }
 </style>

@@ -9,24 +9,30 @@ import SlotLoading from '@components/OverlaySlotLoading.vue'
 const loadingStore = useStore()
 // on routing hint for slow network
 const router = useRouter()
+let timeoutId: number
 router.beforeEach(() => {
-  loadingStore.isLoading = true
+  timeoutId = setTimeout(() => {
+    loadingStore.isLoading = true
+  }, 500)
 })
 router.afterEach(() => {
-  loadingStore.isLoading = false
+  clearTimeout(timeoutId)
+  if (loadingStore.isLoading) {
+    loadingStore.isLoading = false
+  }
 })
 </script>
 
 <template>
   <div class="transition-container">
-    <RouterView v-slot="{Component, route}">
-      <Transition
-        :name="route.meta.transition1"
-      >
-        <KeepAlive>
+    <RouterView>
+      <template #default="{Component, route}">
+        <Transition
+          :name="route.meta.transition1"
+        >
           <component :is="Component" />
-        </KeepAlive>
-      </Transition>
+        </Transition>
+      </template>
     </RouterView>
   </div>
 

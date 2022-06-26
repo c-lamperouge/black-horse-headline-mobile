@@ -94,14 +94,20 @@ const hancleSearchInput = () => {
     </header>
 
     <RouterView>
-      <template #default="{Component}">
-        <Suspense v-if="Component">
-          <component :is="Component" />
+      <template #default="{Component, route}">
+        <Transition
+          :name="route.meta.transition3"
+        >
+          <Suspense
+            v-if="Component"
+          >
+            <component :is="Component" />
 
-          <template #fallback>
-            <SearchLoading />
-          </template>
-        </Suspense>
+            <template #fallback>
+              <SearchLoading />
+            </template>
+          </Suspense>
+        </Transition>
       </template>
     </RouterView>
   </div>

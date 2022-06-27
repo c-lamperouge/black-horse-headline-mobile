@@ -1,46 +1,101 @@
 <script setup lang="ts">
-import { reactive } from 'vue'
-import { $ref } from 'vue/macros'
-import IconMenu from '~icons/ic/round-menu'
-import ArticleList from '@views/main/articleList/ArticleList.vue'
-import ArticleListLoading from '@views/main/articleList/ArticleListLoading.vue'
-import { autoGetUserChannels } from '@network/logic/autoGetUserChannels'
-import type { Data } from '@network/logic/autoGetUserChannels'
+// for vue
+import { reactive, watch } from 'vue'
+import { $ref, $$ } from 'vue/macros'
+// for handle network request
 import { match } from 'ts-pattern'
+import { autoGetUserChannels } from '@network/logic/autoGetUserChannels'
+import type { Data as ChannelsData } from '@network/logic/autoGetUserChannels'
+// for edit channel component
+import IconMenu from '~icons/ic/round-menu'
 import BodyOverlay from '@/components/BodyOverlay.vue'
 import EditChannel from '@views/main/home/EditChannel.vue'
+// for article list component
+import { autoGetChannelRecommendArticles } from '@network/logic/autoGetChannelRecommendArticls'
+import type { Data as ArticlesData } from '@network/logic/autoGetChannelRecommendArticls'
+import ArticleListLoading from '@views/main/articleList/ArticleListLoading.vue'
+import ArticleList from '@views/main/articleList/ArticleList.vue'
 
-// about channel tab bar element
+// async request user channels
 interface Channel {
   id: string
   name: string
 }
 const channels: Array<Channel> = reactive([])
-let activeChannelId = $ref<string>('0')
-
 match(await autoGetUserChannels())
   .with({ responseType: 'success' }, async result => {
-    const data: Data = await result.lastContent().json()
+    const data: ChannelsData = await result.lastContent().json()
     data.data.channels.forEach(channel => {
       channels.push({
         id: channel.id.toString(),
         name: channel.name
       })
     })
-
-    activeChannelId = data.data.channels[0].id.toString()
+    activeChannelId = channels.at(0)?.id ?? null
   })
   .otherwise(result => {
     console.log(result.responseResultQueue)
   })
 
-const handleChannelClick = (channel: Channel) => {
-  activeChannelId = channel.id
-}
-
+// about channel edit
 let isShowEditChannel = $ref(false)
 const showEditChannel = () => {
   isShowEditChannel = true
+}
+
+// according to active channel id to update article list
+let activeChannelId = $ref<string | null>(null)
+let isShowArticleListLoading = $ref(false)
+interface Article {
+  id: number
+  title: string
+  authorId: number
+  author: string
+  commentsCount: number
+  publishDate: Date
+  cover: {
+    type: 0 | 1 | 3
+    urls: string[]
+  }
+}
+const articles: Array<Article> = reactive([])
+// channel cache
+const channelCache = new Map<string, Array<Article>>()
+watch($$(activeChannelId), async (newValue) => {
+  if (newValue !== null) {
+    const cache = channelCache.get(newValue)
+    if (cache !== undefined) {
+      articles.splice(0, articles.length, ...cache)
+    } else {
+      isShowArticleListLoading = true
+      match(await autoGetChannelRecommendArticles(newValue, Date.now()))
+        .with({ responseType: 'success' }, async result => {
+          const data: ArticlesData = await result.lastContent().json()
+          const newArticles = data.data.results.map(value => ({
+            id: parseInt(value.art_id),
+            title: value.title,
+            authorId: parseInt(value.aut_id),
+            author: value.aut_name,
+            commentsCount: parseInt(value.comm_count),
+            publishDate: new Date(value.pubdate),
+            cover: {
+              type: value.cover.type,
+              urls: value.cover.images
+            }
+          }))
+          channelCache.set(newValue, newArticles)
+          articles.splice(0, articles.length, ...newArticles)
+        })
+        .otherwise(result => {
+          console.log(result.responseResultQueue)
+        })
+      isShowArticleListLoading = false
+    }
+  }
+})
+
+const handleChannelClick = (channel: Channel) => {
+  activeChannelId = channel.id
 }
 </script>
 
@@ -49,16 +104,14 @@ const showEditChannel = () => {
     <Suspense>
       <div class="suspense-container">
         <nav class="channel-tab-bar">
-          <div class="left">
-            <div
-              v-for="channel in channels"
-              :key="channel.id"
-              class="item"
-              :class="{'-active': activeChannelId === channel.id}"
-              @click="handleChannelClick(channel)"
-            >
-              <span class="title">{{ channel.name }}</span>
-            </div>
+          <div
+            v-for="channel in channels"
+            :key="channel.id"
+            class="item"
+            :class="{'-active': activeChannelId === channel.id}"
+            @click="handleChannelClick(channel)"
+          >
+            <span class="title">{{ channel.name }}</span>
           </div>
 
           <div
@@ -70,13 +123,11 @@ const showEditChannel = () => {
           </div>
         </nav>
 
-        <Suspense>
-          <ArticleList :channel-id="activeChannelId" />
-
-          <template #fallback>
-            <ArticleListLoading />
-          </template>
-        </Suspense>
+        <ArticleListLoading v-if="isShowArticleListLoading" />
+        <ArticleList
+          v-else
+          :articles="articles"
+        />
       </div>
     </Suspense>
 
@@ -112,62 +163,47 @@ const showEditChannel = () => {
   display: block flex;
   width: 100%;
   height: 82px;
+  box-sizing: border-box;
+  flex-wrap: nowrap;
+  padding: 12px;
+  background-color: hsl(var(--theme-hue) 20% 95%);
+  box-shadow: var(--shadow-layer);
+  gap: 12px;
+  overflow-x: auto;
 
-  & > .left {
-    flex: 1;
-    overflow-x: auto;
-    white-space: nowrap;
+  & > .item {
+    display: block flex;
+    box-sizing: border-box;
+    flex: 0 0 174px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    transition: background-color 0.25s linear 0s;
 
-    & > .item {
-      position: relative;
-      display: inline flex;
-      width: 200px;
-      height: 100%;
-      box-sizing: border-box;
-      align-items: center;
-      justify-content: center;
-      border-bottom: 1px solid #edeff3;
-      transition: background-color 0.25s linear 0s;
-      vertical-align: top;
-
-      &:active {
-        background-color: #f2f3f5;
-      }
-
-      &.-active {
-        &::after {
-          position: absolute;
-          bottom: 10px;
-          left: 50%;
-          display: block;
-          width: 30px;
-          height: 6px;
-          background-color: #3296fa;
-          border-radius: 3px;
-          content: "";
-          transform: translateX(-50%);
-        }
-      }
-
-      & > .title {
-        color: #333;
-        font-size: 30px;
-      }
+    &:active {
+      background-color: white;
     }
 
-    & > .item + .item {
-      border-left: 1px solid #edeff3;
+    &.-active {
+      background-color: white;
+      box-shadow: var(--shadow-separate);
+      color: var(--theme-color);
+      font-weight: 500;
+    }
+
+    & > .title {
+      font-size: 30px;
     }
   }
 
   & > .menu {
     display: block flex;
-    width: 66px;
-    height: 100%;
+    flex: 0 0 58px;
     align-items: center;
     justify-content: center;
     background-color: white;
-    box-shadow: 0 0 8px rgb(0 0 0 / 24%);
+    border-radius: 6px;
+    box-shadow: var(--shadow-separate);
     transition: background-color 0.25s linear 0s;
 
     &:active {

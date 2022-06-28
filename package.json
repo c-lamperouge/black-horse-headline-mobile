@@ -9,17 +9,18 @@
   },
   "dependencies": {
     "idb": "^7.0.2",
+    "lottie-web": "^5.9.5",
     "pinia": "^2.0.14",
     "ts-pattern": "^4.0.3",
     "vue": "^3.2.37",
     "vue-router": "^4.0.16"
   },
   "devDependencies": {
-    "@iconify-json/ic": "^1.1.5",
+    "@iconify-json/ic": "^1.1.6",
     "@types/node": "^18.0.0",
     "@types/postcss-preset-env": "^7.7.0",
-    "@typescript-eslint/eslint-plugin": "^5.29.0",
-    "@typescript-eslint/parser": "^5.29.0",
+    "@typescript-eslint/eslint-plugin": "^5.30.0",
+    "@typescript-eslint/parser": "^5.30.0",
     "@vitejs/plugin-vue": "^2.3.3",
     "eslint": "^8.18.0",
     "eslint-config-standard": "^17.0.0",
@@ -36,8 +37,8 @@
     "stylelint-config-standard": "^26.0.0",
     "stylelint-rscss": "^0.4.0",
     "typescript": "^4.7.4",
-    "unplugin-icons": "^0.14.5",
-    "vite": "^2.9.12",
-    "vue-tsc": "^0.38.1"
+    "unplugin-icons": "^0.14.6",
+    "vite": "^2.9.13",
+    "vue-tsc": "^0.38.2"
   }
 }

@@ -13,12 +13,11 @@ interface ComponentProperties {
 const props = defineProps<ComponentProperties>()
 
 interface ComponentEmits {
-  (e: 'cancel'): void
+  (e: 'close'): void
 }
 const emit = defineEmits<ComponentEmits>()
 
 // request
-console.log('request start')
 try {
   match(await autoGetArticleDetails(props.id))
     .with({ responseType: 'success' }, async result => {
@@ -34,7 +33,7 @@ try {
 
 // handle
 const closeOverlay = () => {
-  emit('cancel')
+  emit('close')
 }
 
 let isFavoriteStored = $ref(false)

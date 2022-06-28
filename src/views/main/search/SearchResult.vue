@@ -88,7 +88,7 @@ const closeOverlay = () => {
         <Suspense>
           <ReadArticle
             :id="readArticleId"
-            @cancel="closeOverlay"
+            @close="closeOverlay"
           />
 
           <template #fallback>

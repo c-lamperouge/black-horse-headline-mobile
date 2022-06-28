@@ -15,8 +15,12 @@ import { autoGetChannelRecommendArticles } from '@network/logic/autoGetChannelRe
 import type { Data as ArticlesData } from '@network/logic/autoGetChannelRecommendArticls'
 import ArticleListLoading from '@views/main/articleList/ArticleListLoading.vue'
 import ArticleItem from '@views/main/articleList/ArticleItem.vue'
+import ArticleItemRefresh from '@views/main/articleList/ArticleItemRefresh.vue'
 import ArticleItemLoadMore from '@views/main/articleList/ArticleItemLoadMore.vue'
-import { animationFrameThrottle } from '@util/throttle'
+import { animationFrameThrottle, throttle } from '@util/throttle'
+// for read article
+import ReadArticle from '@views/main/search/ReadArticle.vue'
+import ReadArticleLoading from '@views/main/search/ReadArticleLoading.vue'
 
 // async request user channels
 interface Channel {
@@ -43,6 +47,19 @@ match(await autoGetUserChannels())
 let isShowEditChannel = $ref(false)
 const showEditChannel = () => {
   isShowEditChannel = true
+}
+const closeEditChannel = () => {
+  isShowEditChannel = false
+}
+// about read article
+let readArticleId = $ref(0)
+let isShowReadArticle = $ref(false)
+const showReadArticle = (id: number) => {
+  readArticleId = id
+  isShowReadArticle = true
+}
+const closeReadArticle = () => {
+  isShowReadArticle = false
 }
 
 // according to active channel id to update article list
@@ -128,7 +145,7 @@ const handleArticleListWheel = (e: WheelEvent) => {
     // temporary assume device is natural scroll
     if (articleListEl.scrollTop === 0) {
       if (e.deltaY < 0) {
-        console.log('loading on top')
+        handleRefresh()
       }
     } else if (Math.abs(articleListEl.scrollHeight - articleListEl.clientHeight - articleListEl.scrollTop) < 1) {
       if (e.deltaY > 0) {
@@ -137,6 +154,45 @@ const handleArticleListWheel = (e: WheelEvent) => {
     }
   }
 }
+
+let isShowArticleItemRefresh = $ref(false)
+// max refresh once in 10 seconds
+const handleRefresh = throttle(async () => {
+  if (!isShowArticleItemRefresh) {
+    isShowArticleItemRefresh = true
+
+    if (activeChannelId !== null) {
+      const currentTimeStamp = Date.now()
+      match(await autoGetChannelRecommendArticles(activeChannelId, currentTimeStamp))
+        .with({ responseType: 'success' }, async result => {
+          const data: ArticlesData = await result.lastContent().json()
+          const newArticles = data.data.results.map(value => ({
+            id: parseInt(value.art_id),
+            title: value.title,
+            authorId: parseInt(value.aut_id),
+            author: value.aut_name,
+            commentsCount: parseInt(value.comm_count),
+            publishDate: new Date(value.pubdate),
+            cover: {
+              type: value.cover.type,
+              urls: value.cover.images
+            }
+          }))
+          channelCache.set(activeChannelId!, {
+            articles: newArticles,
+            timeStamps: [currentTimeStamp, data.data.pre_timestamp],
+            scrollTop: 0
+          })
+          articles.splice(0, articles.length, ...newArticles)
+
+          isShowArticleItemRefresh = false
+        })
+        .otherwise(result => {
+          console.log(result.responseResultQueue)
+        })
+    }
+  }
+}, 10000)
 
 let isShowArticleItemLoadMore = $ref(false)
 const handleLoadMore = async () => {
@@ -210,10 +266,13 @@ const handleLoadMore = async () => {
           @scroll="handleArticleListScroll($event)"
           @wheel="handleArticleListWheel($event)"
         >
+          <ArticleItemRefresh v-show="isShowArticleItemRefresh" />
+
           <ArticleItem
             v-for="article in articles"
             :key="article.id"
             :article="article"
+            @click="showReadArticle(article.id)"
           />
 
           <ArticleItemLoadMore v-show="isShowArticleItemLoadMore" />
@@ -227,8 +286,26 @@ const handleLoadMore = async () => {
     >
       <EditChannel
         :channels="channels"
-        @close="isShowEditChannel = false"
+        @close="closeEditChannel"
       />
+    </BodyOverlay>
+
+    <BodyOverlay
+      v-model="isShowReadArticle"
+      slot-transition-name="slide"
+    >
+      <div class="transition-container">
+        <Suspense>
+          <ReadArticle
+            :id="readArticleId"
+            @close="closeReadArticle"
+          />
+
+          <template #fallback>
+            <ReadArticleLoading />
+          </template>
+        </Suspense>
+      </div>
     </BodyOverlay>
   </div>
 </template>
@@ -311,6 +388,20 @@ const handleLoadMore = async () => {
   flex: 1;
   flex-direction: column;
   overflow-y: auto;
+}
+
+.transition-container {
+  position: fixed;
+  z-index: 11;
+  top: 0;
+  left: 0;
+  display: block flex;
+  width: 100vw;
+  height: 100vh;
+  flex-direction: column;
+  justify-content: flex-start;
+  background-color: white;
+  box-shadow: 0 0 8px 0 rgb(0 0 0 / 24%);
 }
 
 /* vue transition class */

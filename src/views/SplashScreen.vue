@@ -1,10 +1,28 @@
 <script setup lang="ts">
+// for vue
+import { onMounted } from 'vue'
+import { $ref } from 'vue/macros'
+// for welcome animation
+import lottie from 'lottie-web'
+import spaceman from '../assets/animation/spaceman.json'
+// for router
 import { useRouter } from 'vue-router'
 import { updateViewPath } from '@stores/dBStoreView'
-import IconWelcome from '~icons/custom/welcome'
 
+// welcome animation
+const welcomeEl = $ref<HTMLDivElement | null>(null)
+onMounted(() => {
+  lottie.loadAnimation({
+    container: welcomeEl!,
+    renderer: 'svg',
+    loop: true,
+    autoplay: true,
+    animationData: spaceman
+  })
+})
+
+// router
 const router = useRouter()
-
 // event handle
 const toNextPage = () => {
   router.push('/login')
@@ -14,7 +32,10 @@ const toNextPage = () => {
 
 <template>
   <div class="splash-screen">
-    <IconWelcome class="icon-welcome" />
+    <div
+      ref="welcomeEl"
+      class="animation-welcome"
+    />
 
     <div class="section-down">
       <h1>
@@ -41,10 +62,10 @@ const toNextPage = () => {
   justify-content: space-around;
 }
 
-.icon-welcome {
-  width: 436px;
-  height: 348px;
-  margin-top: 250px;
+.animation-welcome {
+  width: 500px;
+  height: 500px;
+  margin-top: 100px;
   margin-bottom: 100px;
 }
 

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // for vue
-import { reactive, watch } from 'vue'
+import { nextTick, reactive, watch } from 'vue'
 import { $ref, $$ } from 'vue/macros'
 // for handle network request
 import { match } from 'ts-pattern'
@@ -14,7 +14,9 @@ import EditChannel from '@views/main/home/EditChannel.vue'
 import { autoGetChannelRecommendArticles } from '@network/logic/autoGetChannelRecommendArticls'
 import type { Data as ArticlesData } from '@network/logic/autoGetChannelRecommendArticls'
 import ArticleListLoading from '@views/main/articleList/ArticleListLoading.vue'
-import ArticleList from '@views/main/articleList/ArticleList.vue'
+import ArticleItem from '@views/main/articleList/ArticleItem.vue'
+import ArticleItemLoadMore from '@views/main/articleList/ArticleItemLoadMore.vue'
+import { animationFrameThrottle } from '@util/throttle'
 
 // async request user channels
 interface Channel {
@@ -58,17 +60,28 @@ interface Article {
     urls: string[]
   }
 }
+const articleListEl = $ref<HTMLDivElement | null>(null)
 const articles: Array<Article> = reactive([])
 // channel cache
-const channelCache = new Map<string, Array<Article>>()
+const channelCache = new Map<string, {
+  articles: Array<Article>
+  timeStamps: Array<number>
+  scrollTop: number
+}>()
 watch($$(activeChannelId), async (newValue) => {
   if (newValue !== null) {
     const cache = channelCache.get(newValue)
     if (cache !== undefined) {
-      articles.splice(0, articles.length, ...cache)
+      articles.splice(0, articles.length, ...cache.articles)
+      nextTick(() => {
+        articleListEl?.scrollTo({
+          top: cache.scrollTop
+        })
+      })
     } else {
       isShowArticleListLoading = true
-      match(await autoGetChannelRecommendArticles(newValue, Date.now()))
+      const currentTimeStamp = Date.now()
+      match(await autoGetChannelRecommendArticles(newValue, currentTimeStamp))
         .with({ responseType: 'success' }, async result => {
           const data: ArticlesData = await result.lastContent().json()
           const newArticles = data.data.results.map(value => ({
@@ -83,8 +96,13 @@ watch($$(activeChannelId), async (newValue) => {
               urls: value.cover.images
             }
           }))
-          channelCache.set(newValue, newArticles)
+          channelCache.set(newValue, {
+            articles: newArticles,
+            timeStamps: [currentTimeStamp, data.data.pre_timestamp],
+            scrollTop: 0
+          })
           articles.splice(0, articles.length, ...newArticles)
+          // not need to set scrollTop = 0
         })
         .otherwise(result => {
           console.log(result.responseResultQueue)
@@ -94,8 +112,69 @@ watch($$(activeChannelId), async (newValue) => {
   }
 })
 
+// event handle
 const handleChannelClick = (channel: Channel) => {
   activeChannelId = channel.id
+}
+
+const handleArticleListScroll = animationFrameThrottle((e: Event) => {
+  const scrollTop = (e.target as HTMLDivElement).scrollTop
+  channelCache.get(activeChannelId!)!.scrollTop = scrollTop
+})
+
+// for article list slide up to lazy load more articles
+const handleArticleListWheel = (e: WheelEvent) => {
+  if (articleListEl) {
+    // temporary assume device is natural scroll
+    if (articleListEl.scrollTop === 0) {
+      if (e.deltaY < 0) {
+        console.log('loading on top')
+      }
+    } else if (Math.abs(articleListEl.scrollHeight - articleListEl.clientHeight - articleListEl.scrollTop) < 1) {
+      if (e.deltaY > 0) {
+        handleLoadMore()
+      }
+    }
+  }
+}
+
+let isShowArticleItemLoadMore = $ref(false)
+const handleLoadMore = async () => {
+  if (!isShowArticleItemLoadMore) {
+    isShowArticleItemLoadMore = true
+
+    if (activeChannelId !== null) {
+      const activeChannelCache = channelCache.get(activeChannelId)!
+      const timeStamps = activeChannelCache.timeStamps
+      const peviousTimeStamp = timeStamps.at(timeStamps.length - 1) as number
+      match(await autoGetChannelRecommendArticles(activeChannelId, peviousTimeStamp))
+        .with({ responseType: 'success' }, async result => {
+          const data: ArticlesData = await result.lastContent().json()
+          const newArticles = data.data.results.map(value => ({
+            id: parseInt(value.art_id),
+            title: value.title,
+            authorId: parseInt(value.aut_id),
+            author: value.aut_name,
+            commentsCount: parseInt(value.comm_count),
+            publishDate: new Date(value.pubdate),
+            cover: {
+              type: value.cover.type,
+              urls: value.cover.images
+            }
+          }))
+          newArticles.forEach(article => {
+            activeChannelCache.articles.push(article)
+            activeChannelCache.timeStamps.push(data.data.pre_timestamp)
+            articles.push(article)
+          })
+
+          isShowArticleItemLoadMore = false
+        })
+        .otherwise(result => {
+          console.log(result.responseResultQueue)
+        })
+    }
+  }
 }
 </script>
 
@@ -124,10 +203,21 @@ const handleChannelClick = (channel: Channel) => {
         </nav>
 
         <ArticleListLoading v-if="isShowArticleListLoading" />
-        <ArticleList
+        <div
           v-else
-          :articles="articles"
-        />
+          ref="articleListEl"
+          class="article-list"
+          @scroll="handleArticleListScroll($event)"
+          @wheel="handleArticleListWheel($event)"
+        >
+          <ArticleItem
+            v-for="article in articles"
+            :key="article.id"
+            :article="article"
+          />
+
+          <ArticleItemLoadMore v-show="isShowArticleItemLoadMore" />
+        </div>
       </div>
     </Suspense>
 
@@ -214,6 +304,13 @@ const handleChannelClick = (channel: Channel) => {
       font-size: 32px;
     }
   }
+}
+
+.article-list {
+  display: block flex;
+  flex: 1;
+  flex-direction: column;
+  overflow-y: auto;
 }
 
 /* vue transition class */
